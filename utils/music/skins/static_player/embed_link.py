@@ -34,15 +34,21 @@ class EmbedLinkStaticSkin:
         if player.current.is_stream:
             duration_txt = f"\n> -# 🔴 **⠂Duração:** `Livestream`"
         else:
-            duration_txt = f"\n> -# ⏰ **⠂Duração:** `{time_format(player.current.duration)}`"
+            duration_txt = (
+                f"\n> -# ⏰ **⠂Duração:** `{time_format(player.current.duration)}`"
+            )
 
-        title = fix_characters(player.current.title) if not player.current.uri else f"[{fix_characters(player.current.title)}]({player.current.uri})"
+        title = (
+            fix_characters(player.current.title)
+            if not player.current.uri
+            else f"[{fix_characters(player.current.title)}]({player.current.uri})"
+        )
 
         if player.paused:
             txt += f"\n> ### ⏸️ ⠂Em Pausa: {title}\n{duration_txt}"
 
         else:
-            txt += f"\n> ### ▶️ ⠂Tocando Agora: {title}\n{duration_txt}"
+            txt += f"\n> ### ▶️ ⠂Now Playing: {title}\n{duration_txt}"
             if not player.current.is_stream and not player.paused:
                 txt += f" `[`<t:{int((disnake.utils.utcnow() + datetime.timedelta(milliseconds=player.current.duration - player.position)).timestamp())}:R>`]`"
 
@@ -58,7 +64,9 @@ class EmbedLinkStaticSkin:
             txt += f"\n> -# 👍 **⠂Adicionado via:** {mode}\n"
 
         try:
-            vc_txt += f"> -# *️⃣ **⠂Canal de voz:** {player.guild.me.voice.channel.mention}\n"
+            vc_txt += (
+                f"> -# *️⃣ **⠂Voice channel:** {player.guild.me.voice.channel.mention}\n"
+            )
         except AttributeError:
             pass
 
@@ -66,13 +74,15 @@ class EmbedLinkStaticSkin:
             txt += f"> -# 📑 **⠂Playlist:** [`{fix_characters(player.current.playlist_name) or 'Visualizar'}`](<{player.current.playlist_url}>)\n"
 
         if player.current.track_loops:
-            txt += f"> -# 🔂 **⠂Repetições restantes:** `{player.current.track_loops}`\n"
+            txt += (
+                f"> -# 🔂 **⠂Repetições restantes:** `{player.current.track_loops}`\n"
+            )
 
         elif player.loop:
-            if player.loop == 'current':
-                txt += '> -# 🔂 **⠂Repetição:** `música atual`\n'
+            if player.loop == "current":
+                txt += "> -# 🔂 **⠂Repetition:** `música atual`\n"
             else:
-                txt += '> -# 🔁 **⠂Repetição:** `fila`\n'
+                txt += "> -# 🔁 **⠂Repetition:** `fila`\n"
 
         txt += vc_txt
 
@@ -84,122 +94,150 @@ class EmbedLinkStaticSkin:
 
             qtext = "> -# **Músicas na lista"
 
-            if qsize  > 4:
+            if qsize > 4:
                 qtext += f" [{qsize}]:"
 
             qtext += "**\n" + "\n".join(
-                                  f"> -# `{(n + 1)} [{time_format(t.duration) if not t.is_stream else '🔴 stream'}]` [`{fix_characters(t.title, 30)}`](<{t.uri}>)"
-                                  for n, t in enumerate(
-                                      itertools.islice(player.queue, 4)))
+                f"> -# `{(n + 1)} [{time_format(t.duration) if not t.is_stream else '🔴 stream'}]` [`{fix_characters(t.title, 30)}`](<{t.uri}>)"
+                for n, t in enumerate(itertools.islice(player.queue, 4))
+            )
 
             txt = f"{qtext}\n{txt}"
 
         elif len(player.queue_autoplay):
 
-            txt = "**Próximas músicas recomendadas:**\n" + \
-                              "\n".join(
-                                  f"-# `{(n + 1)} [{time_format(t.duration) if not t.is_stream else '🔴 stream'}]` [`{fix_characters(t.title, 30)}`](<{t.uri}>)"
-                                  for n, t in enumerate(
-                                      itertools.islice(player.queue_autoplay, 4))) + f"\n{txt}"
+            txt = (
+                "**Próximas músicas recomendadas:**\n"
+                + "\n".join(
+                    f"-# `{(n + 1)} [{time_format(t.duration) if not t.is_stream else '🔴 stream'}]` [`{fix_characters(t.title, 30)}`](<{t.uri}>)"
+                    for n, t in enumerate(itertools.islice(player.queue_autoplay, 4))
+                )
+                + f"\n{txt}"
+            )
 
         data = {
             "content": txt,
             "embeds": [],
             "components": [
-                disnake.ui.Button(emoji="⏯️", custom_id=PlayerControls.pause_resume, style=get_button_style(player.paused)),
+                disnake.ui.Button(
+                    emoji="⏯️",
+                    custom_id=PlayerControls.pause_resume,
+                    style=get_button_style(player.paused),
+                ),
                 disnake.ui.Button(emoji="⏮️", custom_id=PlayerControls.back),
                 disnake.ui.Button(emoji="⏹️", custom_id=PlayerControls.stop),
                 disnake.ui.Button(emoji="⏭️", custom_id=PlayerControls.skip),
-                disnake.ui.Button(emoji="<:music_queue:703761160679194734>", custom_id=PlayerControls.queue, disabled=not (player.queue or player.queue_autoplay)),
+                disnake.ui.Button(
+                    emoji="<:music_queue:703761160679194734>",
+                    custom_id=PlayerControls.queue,
+                    disabled=not (player.queue or player.queue_autoplay),
+                ),
                 disnake.ui.Select(
-                    placeholder="Mais opções:",
+                    placeholder="More options:",
                     custom_id="musicplayer_dropdown_inter",
-                    min_values=0, max_values=1,
+                    min_values=0,
+                    max_values=1,
                     options=[
                         disnake.SelectOption(
-                            label="Adicionar música", emoji="<:add_music:588172015760965654>",
+                            label="Add music",
+                            emoji="<:add_music:588172015760965654>",
                             value=PlayerControls.add_song,
-                            description="Adicionar uma música/playlist na fila."
+                            description="Add a song/playlist to the queue./playlist na fila.",
                         ),
                         disnake.SelectOption(
-                            label="Adicionar favorito na fila", emoji="⭐",
+                            label="Add favorite to queue",
+                            emoji="⭐",
                             value=PlayerControls.enqueue_fav,
-                            description="Adicionar um de seus favoritos na fila."
+                            description="Add one of your favorites to the queue.",
                         ),
                         disnake.SelectOption(
-                            label="Tocar do inicio", emoji="⏪",
+                            label="Play from beginning",
+                            emoji="⏪",
                             value=PlayerControls.seek_to_start,
-                            description="Voltar o tempo da música atual para o inicio."
+                            description="Return the current song's tempo to the beginning.",
                         ),
                         disnake.SelectOption(
-                            label=f"Volume: {player.volume}%", emoji="🔊",
+                            label=f"Volume: {player.volume}%",
+                            emoji="🔊",
                             value=PlayerControls.volume,
-                            description="Ajustar volume."
+                            description="Adjust volume.",
                         ),
                         disnake.SelectOption(
-                            label="Misturar", emoji="🔀",
+                            label="Mix",
+                            emoji="🔀",
                             value=PlayerControls.shuffle,
-                            description="Misturar as músicas da fila."
+                            description="Mix the songs in the queue.",
                         ),
                         disnake.SelectOption(
-                            label="Readicionar", emoji="🎶",
+                            label="Re-add",
+                            emoji="🎶",
                             value=PlayerControls.readd,
-                            description="Readicionar as músicas tocadas de volta na fila."
+                            description="Re-add re-add played songs back to the queue.",
                         ),
                         disnake.SelectOption(
-                            label="Repetição", emoji="🔁",
+                            label="Repetition",
+                            emoji="🔁",
                             value=PlayerControls.loop_mode,
-                            description="Ativar/Desativar repetição da música/fila."
+                            description="Enable/Disable song/queue repetition.",
                         ),
                         disnake.SelectOption(
-                            label=("Desativar" if player.nightcore else "Ativar") + " o efeito nightcore", emoji="🇳",
+                            label=("Disable" if player.nightcore else "Activate")
+                            + " the nightcore effect",
+                            emoji="🇳",
                             value=PlayerControls.nightcore,
-                            description="Efeito que aumenta velocidade e tom da música."
+                            description="Efeito que aumenta velocidade e tom da música.",
                         ),
                         disnake.SelectOption(
-                            label=("Desativar" if player.autoplay else "Ativar") + " a reprodução automática", emoji="🔄",
+                            label=("Disable" if player.autoplay else "Activate")
+                            + " autoplay",
+                            emoji="🔄",
                             value=PlayerControls.autoplay,
-                            description="Sistema de adição de música automática quando a fila estiver vazia."
+                            description="Sistema de adição de música automática quando a fila estiver vazia.",
                         ),
                         disnake.SelectOption(
-                            label=("Desativar" if player.restrict_mode else "Ativar") + " o modo restrito", emoji="🔐",
+                            label=("Disable" if player.restrict_mode else "Activate")
+                            + " restricted mode",
+                            emoji="🔐",
                             value=PlayerControls.restrict_mode,
-                            description="Apenas DJ's/Staff's podem usar comandos restritos."
+                            description="Only DJ's/Staff's can use restricted commands.",
                         ),
-                    ]
+                    ],
                 ),
-            ]
+            ],
         }
 
         if player.current.ytid and player.node.lyric_support:
             data["components"][5].options.append(
                 disnake.SelectOption(
-                    label= "Visualizar letras", emoji="📃",
+                    label="Visualizar letras",
+                    emoji="📃",
                     value=PlayerControls.lyrics,
-                    description="Obter letra da música atual."
+                    description="Obter letra da música atual.",
                 )
             )
-
 
         if isinstance(player.last_channel, disnake.VoiceChannel):
             data["components"][5].options.append(
                 disnake.SelectOption(
-                    label="Status automático", emoji="📢",
+                    label="Status automático",
+                    emoji="📢",
                     value=PlayerControls.set_voice_status,
-                    description="Configurar o status automático do canal de voz."
+                    description="Configurar o status automático do voice channel.",
                 )
             )
 
         if not player.static and not player.has_thread:
             data["components"][5].options.append(
                 disnake.SelectOption(
-                    label="Song-Request Thread", emoji="💬",
+                    label="Song-Request Thread",
+                    emoji="💬",
                     value=PlayerControls.song_request_thread,
-                    description="Criar uma thread/conversa temporária para pedir músicas usando apenas o nome/link."
+                    description="Criar uma thread/conversa temporária para pedir músicas usando apenas o nome/link.",
                 )
             )
 
         return data
+
 
 def load():
     return EmbedLinkStaticSkin()

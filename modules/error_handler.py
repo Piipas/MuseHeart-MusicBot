@@ -405,7 +405,7 @@ class ErrorHandler(commands.Cog):
 
             if vc := ctx.author.voice:
                 embed.add_field(
-                    name="Canal de voz (user):", inline=False,
+                    name="Voice channel (user):", inline=False,
                     value=f"```\n{disnake.utils.escape_markdown(vc.channel.name)}" +
                           (f" ({len(vc.channel.voice_states)}/{vc.channel.user_limit})"
                            if vc.channel.user_limit else "") + f"\nID: {vc.channel.id}```"
@@ -414,7 +414,7 @@ class ErrorHandler(commands.Cog):
             if vcbot := ctx.guild.me.voice:
                 if vc and vcbot.channel != vc.channel:
                     embed.add_field(
-                        name="Canal de voz (bot):", inline=False,
+                        name="Voice channel (bot):", inline=False,
                         value=f"{vc.channel.name}" +
                               (f" ({len(vc.channel.voice_states)}/{vc.channel.user_limit})"
                                if vc.channel.user_limit else "") + f"\nID: {vc.channel.id}```"

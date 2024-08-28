@@ -20,29 +20,33 @@ if TYPE_CHECKING:
     from utils.client import BotCore
     from utils.music.models import LavalinkPlayer
 
-token_regex = re.compile(r'[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27,}')
+token_regex = re.compile(
+    r"[a-zA-Z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27,}"
+)
+
 
 class Test:
 
     def is_done(self):
         return False
 
+
 class CommandArgparse(argparse.ArgumentParser):
 
     def __init__(self, *args, **kwargs):
 
-        kwargs.pop('exit_on_error', None)
-        kwargs.pop('allow_abbrev', None)
-        kwargs.pop('add_help', None)
+        kwargs.pop("exit_on_error", None)
+        kwargs.pop("allow_abbrev", None)
+        kwargs.pop("add_help", None)
 
         try:
-            super().__init__(*args, exit_on_error=False, allow_abbrev=False, add_help=False, **kwargs)
+            super().__init__(
+                *args, exit_on_error=False, allow_abbrev=False, add_help=False, **kwargs
+            )
         except TypeError:
             super().__init__(*args, allow_abbrev=False, add_help=False, **kwargs)
 
-    def parse_known_args(
-        self, args = None, namespace = None
-    ):
+    def parse_known_args(self, args=None, namespace=None):
         try:
             return super().parse_known_args(args, namespace)
         except argparse.ArgumentError as e:
@@ -58,10 +62,14 @@ class CommandArgparse(argparse.ArgumentParser):
     def error(self, message: str):
         raise ArgumentParsingError(message)
 
+
 class CustomContext(commands.Context):
     bot: BotCore
+
     def __init__(self, prefix, view, bot: BotCore, message):
-        super(CustomContext, self).__init__(prefix=prefix, view=view, bot=bot, message=message)
+        super(CustomContext, self).__init__(
+            prefix=prefix, view=view, bot=bot, message=message
+        )
         self.response = Test()
         self.response.defer = self.defer
         self.user = self.author
@@ -79,7 +87,11 @@ class CustomContext(commands.Context):
             await self.trigger_typing()
         else:
             perms = self.channel.permissions_for(self.guild.me)
-            if self.message.author.id != self.bot.user.id and perms.send_messages and perms.add_reactions:
+            if (
+                self.message.author.id != self.bot.user.id
+                and perms.send_messages
+                and perms.add_reactions
+            ):
                 await self.message.add_reaction("⌛")
         return
 
@@ -96,7 +108,9 @@ class CustomContext(commands.Context):
             pass
 
         if self.channel.permissions_for(self.guild.me).read_message_history:
-            return await super().reply(fail_if_not_exists=False, content=content, **kwargs)
+            return await super().reply(
+                fail_if_not_exists=False, content=content, **kwargs
+            )
 
         return await super().send(content=content, **kwargs)
 
@@ -123,6 +137,7 @@ class CustomContext(commands.Context):
 
         return await super().reply(fail_if_not_exists=False, content=content, **kwargs)
 
+
 class PoolCommand(commands.Command):
     def __init__(self, func, **kwargs):
         super().__init__(func, **kwargs)
@@ -130,13 +145,11 @@ class PoolCommand(commands.Command):
         self.pool_check_player = kwargs.pop("check_player", True)
         self.pool_only_voiced = kwargs.pop("only_voiced", False)
 
+
 class ProgressBar:
 
     def __init__(
-            self,
-            position: Union[int, float],
-            total: Union[int, float],
-            bar_count: int = 10
+        self, position: Union[int, float], total: Union[int, float], bar_count: int = 10
     ):
         self.start = int(bar_count * (position / total))
         self.end = int(bar_count - self.start) - 1
@@ -176,7 +189,13 @@ class PlayerControls:
 
 class EmbedPaginator(disnake.ui.View):
 
-    def __init__(self, ctx: Union[CustomContext, disnake.MessageInteraction], embeds: list[disnake.Embed], *,timeout=180):
+    def __init__(
+        self,
+        ctx: Union[CustomContext, disnake.MessageInteraction],
+        embeds: list[disnake.Embed],
+        *,
+        timeout=180,
+    ):
         super().__init__(timeout=timeout)
         self.ctx = ctx
         self.embeds = embeds
@@ -189,13 +208,13 @@ class EmbedPaginator(disnake.ui.View):
         if interaction.author != self.ctx.author:
             await interaction.send(
                 f"Apenas o membro {self.ctx.author.mention} pode usar os botões dessa mensagem...",
-                ephemeral=True
+                ephemeral=True,
             )
             return False
 
         return True
 
-    @disnake.ui.button(emoji='⬅️', style=disnake.ButtonStyle.grey)
+    @disnake.ui.button(emoji="⬅️", style=disnake.ButtonStyle.grey)
     async def back(self, button, interaction: disnake.MessageInteraction):
 
         if self.current == 0:
@@ -204,7 +223,7 @@ class EmbedPaginator(disnake.ui.View):
             self.current -= 1
         await interaction.response.edit_message(embed=self.embeds[self.current])
 
-    @disnake.ui.button(emoji='➡️', style=disnake.ButtonStyle.grey)
+    @disnake.ui.button(emoji="➡️", style=disnake.ButtonStyle.grey)
     async def next(self, button, interaction: disnake.MessageInteraction):
 
         if self.current == self.max_page:
@@ -213,7 +232,7 @@ class EmbedPaginator(disnake.ui.View):
             self.current += 1
         await interaction.response.edit_message(embed=self.embeds[self.current])
 
-    @disnake.ui.button(emoji='⏹️', style=disnake.ButtonStyle.red, label="Fechar")
+    @disnake.ui.button(emoji="⏹️", style=disnake.ButtonStyle.red, label="Fechar")
     async def close(self, button, interaction: disnake.MessageInteraction):
 
         await interaction.message.delete()
@@ -230,21 +249,28 @@ class EmbedPaginator(disnake.ui.View):
 
 
 song_request_buttons = [
-    disnake.ui.Button(label="Pedir uma música", emoji="🎶", custom_id=PlayerControls.add_song),
-    disnake.ui.Button(label="Tocar favorito/integração", emoji="⭐", custom_id=PlayerControls.enqueue_fav)
+    disnake.ui.Button(
+        label="Pedir uma música", emoji="🎶", custom_id=PlayerControls.add_song
+    ),
+    disnake.ui.Button(
+        label="Tocar favorito/integração",
+        emoji="⭐",
+        custom_id=PlayerControls.enqueue_fav,
+    ),
 ]
 
 
-def pool_command(*args, **kwargs)-> PoolCommand:
+def pool_command(*args, **kwargs) -> PoolCommand:
     return commands.command(*args, **kwargs, cls=PoolCommand)
 
 
 def chunk_list(lst: list, amount: int):
-    return [lst[i:i + amount] for i in range(0, len(lst), amount)]
+    return [lst[i : i + amount] for i in range(0, len(lst), amount)]
 
 
-async def check_cmd(cmd, inter: Union[disnake.Interaction, disnake.ModalInteraction, CustomContext]):
-
+async def check_cmd(
+    cmd, inter: Union[disnake.Interaction, disnake.ModalInteraction, CustomContext]
+):
     """try:
         inter.application_command = cmd
         await cmd._max_concurrency.acquire(inter)
@@ -256,7 +282,11 @@ async def check_cmd(cmd, inter: Union[disnake.Interaction, disnake.ModalInteract
 
     else:
         for command_check in cmd.checks:
-            c = (await command_check(inter)) if iscoroutinefunction(command_check) else command_check(inter)
+            c = (
+                (await command_check(inter))
+                if iscoroutinefunction(command_check)
+                else command_check(inter)
+            )
             if not c:
                 raise commands.CheckFailure()
 
@@ -265,7 +295,9 @@ async def check_cmd(cmd, inter: Union[disnake.Interaction, disnake.ModalInteract
         if bucket:
             retry_after = bucket.update_rate_limit()
             if retry_after:
-                raise commands.CommandOnCooldown(cooldown=bucket, retry_after=retry_after, type=cmd._buckets.type)
+                raise commands.CommandOnCooldown(
+                    cooldown=bucket, retry_after=retry_after, type=cmd._buckets.type
+                )
 
     """try:
         chkcmd = list(cmd.children.values())[0]
@@ -279,11 +311,10 @@ async def check_cmd(cmd, inter: Union[disnake.Interaction, disnake.ModalInteract
         await check_cmd(chkcmd, inter)"""
 
 
-
 async def send_message(
-        inter: Union[disnake.Interaction, disnake.ApplicationCommandInteraction],
-        text=None,
-        **kwargs,
+    inter: Union[disnake.Interaction, disnake.ApplicationCommandInteraction],
+    text=None,
+    **kwargs,
 ):
 
     # correção temporária usando variavel kwargs.
@@ -299,7 +330,7 @@ async def send_message(
     except KeyError:
         pass
 
-    if hasattr(inter, 'self_mod'):
+    if hasattr(inter, "self_mod"):
         if inter.response.is_done():
             await inter.edit_original_message(content=text, **kwargs)
         else:
@@ -343,9 +374,13 @@ async def send_message(
 
             try:
                 if isinstance(inter.channel, disnake.Thread):
-                    send_message_perm = inter.channel.parent.permissions_for(inter.guild.me).send_messages_in_threads
+                    send_message_perm = inter.channel.parent.permissions_for(
+                        inter.guild.me
+                    ).send_messages_in_threads
                 else:
-                    send_message_perm = inter.channel.permissions_for(inter.guild.me).send_messages
+                    send_message_perm = inter.channel.permissions_for(
+                        inter.guild.me
+                    ).send_messages
 
                 if not send_message_perm:
                     return
@@ -355,8 +390,14 @@ async def send_message(
 
 
 async def send_idle_embed(
-        target: Union[disnake.Message, disnake.TextChannel, disnake.Thread, disnake.MessageInteraction],
-        text="", *, bot: BotCore, force=False, guild_data: dict = None
+    target: Union[
+        disnake.Message, disnake.TextChannel, disnake.Thread, disnake.MessageInteraction
+    ],
+    text="",
+    *,
+    bot: BotCore,
+    force=False,
+    guild_data: dict = None,
 ):
 
     if not target:
@@ -376,7 +417,15 @@ async def send_idle_embed(
         guild_data = await bot.get_data(guild_id, db_name=DBModel.guilds)
 
     try:
-        cmd = f"</play:" + str(bot.get_global_command_named("play", cmd_type=disnake.ApplicationCommandType.chat_input).id) + ">"
+        cmd = (
+            f"</play:"
+            + str(
+                bot.get_global_command_named(
+                    "play", cmd_type=disnake.ApplicationCommandType.chat_input
+                ).id
+            )
+            + ">"
+        )
     except AttributeError:
         cmd = "/play"
 
@@ -386,7 +435,10 @@ async def send_idle_embed(
         try:
             for p in n.info["sourceManagers"]:
                 if p == "youtube":
-                    if "ytsearch" not in n.original_providers and "ytmsearch" not in n.original_providers:
+                    if (
+                        "ytsearch" not in n.original_providers
+                        and "ytmsearch" not in n.original_providers
+                    ):
                         continue
                 elif p == "http":
                     continue
@@ -394,13 +446,15 @@ async def send_idle_embed(
         except:
             continue
 
-    embed = disnake.Embed(description="**Entre em um canal de voz e peça uma música aqui " +
-                                      ("no post" if is_forum else "no canal ou na conversa abaixo") +
-                                      f" (ou clique no botão abaixo ou use o comando {cmd} aqui ou em algum outro canal)**\n\n"
-                                      "**Você pode usar um nome ou um link de site compatível:**\n"
-                                      "[`Youtube`](<https://www.youtube.com/>), [`Soundcloud`](<https://soundcloud.com/>), " \
-                                      "[`Spotify`](<https://open.spotify.com/>), [`Twitch`](<https://www.twitch.tv/>)",
-                          color=bot.get_color(target.guild.me))
+    embed = disnake.Embed(
+        description="**Entre em um voice channel e peça uma música aqui "
+        + ("no post" if is_forum else "no canal ou na conversa abaixo")
+        + f" (ou clique no botão abaixo ou use o comando {cmd} aqui ou em algum outro canal)**\n\n"
+        "**Você pode usar um nome ou um link de site compatível:**\n"
+        "[`Youtube`](<https://www.youtube.com/>), [`Soundcloud`](<https://soundcloud.com/>), "
+        "[`Spotify`](<https://open.spotify.com/>), [`Twitch`](<https://www.twitch.tv/>)",
+        color=bot.get_color(target.guild.me),
+    )
 
     if text:
         embed.description += f"\n\n**ÚLTIMA AÇÃO:** {text.replace('**', '')}\n"
@@ -409,43 +463,64 @@ async def send_idle_embed(
 
     components = []
 
-    opts = [disnake.SelectOption(label=k, value=k, emoji=music_source_emoji_url(v['url'])[0], description=v.get('description')) for k, v in sorted(guild_data["player_controller"]["fav_links"].items(), key=lambda k: k)]
+    opts = [
+        disnake.SelectOption(
+            label=k,
+            value=k,
+            emoji=music_source_emoji_url(v["url"])[0],
+            description=v.get("description"),
+        )
+        for k, v in sorted(
+            guild_data["player_controller"]["fav_links"].items(), key=lambda k: k
+        )
+    ]
 
     if opts:
         components.append(
             disnake.ui.Select(
                 placeholder="Músicas/Playlists do servidor.",
-                options=opts, custom_id="player_guild_pin",
-                min_values=0, max_values=1
+                options=opts,
+                custom_id="player_guild_pin",
+                min_values=0,
+                max_values=1,
             )
         )
 
     components.extend(song_request_buttons)
 
     if is_forum:
-        content = "🎶 Entre em um canal de voz e peça sua música aqui."
+        content = "🎶 Entre em um voice channel e peça sua música aqui."
     else:
         content = None
 
     if isinstance(target, disnake.MessageInteraction):
-        await target.response.edit_message(embed=embed, components=components, content=content)
+        await target.response.edit_message(
+            embed=embed, components=components, content=content
+        )
         message = target.message
 
     elif isinstance(target, disnake.Message):
 
-        if guild_data["player_controller"]["channel"] != str(target.channel.id) and not force:
+        if (
+            guild_data["player_controller"]["channel"] != str(target.channel.id)
+            and not force
+        ):
             return target
 
         if target.author == target.guild.me:
             await target.edit(embed=embed, content=content, components=components)
             message = target
         else:
-            message = await target.channel.send(embed=embed, components=components, content=content)
+            message = await target.channel.send(
+                embed=embed, components=components, content=content
+            )
     else:
 
         channel = bot.get_channel(target.id)
 
-        if isinstance(channel, disnake.Thread) and guild_data["player_controller"]["channel"] == str(channel.id):
+        if isinstance(channel, disnake.Thread) and guild_data["player_controller"][
+            "channel"
+        ] == str(channel.id):
             if is_forum:
                 func = channel.fetch_message
             else:
@@ -466,7 +541,12 @@ async def send_idle_embed(
                                 continue
                             thread = t
                             thread_kw = {}
-                            if thread.locked and target.permissions_for(target.guild.me).manage_threads:
+                            if (
+                                thread.locked
+                                and target.permissions_for(
+                                    target.guild.me
+                                ).manage_threads
+                            ):
                                 thread_kw.update({"locked": False, "archived": False})
                             elif thread.archived:
                                 thread_kw["archived"] = False
@@ -474,7 +554,10 @@ async def send_idle_embed(
                                 await thread.edit(**thread_kw)
                             break
 
-                    if not thread and target.guild.me.guild_permissions.read_message_history:
+                    if (
+                        not thread
+                        and target.guild.me.guild_permissions.read_message_history
+                    ):
                         async for t in target.parent.archived_threads(limit=100):
                             if t.owner_id == bot.user.id:
                                 try:
@@ -482,8 +565,15 @@ async def send_idle_embed(
                                 except disnake.NotFound:
                                     continue
                                 thread_kw = {}
-                                if thread.locked and target.permissions_for(target.guild.me).manage_threads:
-                                    thread_kw.update({"locked": False, "archived": False})
+                                if (
+                                    thread.locked
+                                    and target.permissions_for(
+                                        target.guild.me
+                                    ).manage_threads
+                                ):
+                                    thread_kw.update(
+                                        {"locked": False, "archived": False}
+                                    )
                                 elif thread.archived:
                                     thread_kw["archived"] = False
                                 if thread_kw:
@@ -492,9 +582,16 @@ async def send_idle_embed(
             else:
                 await message.edit(embed=embed, content=content, components=components)
         else:
-            message = await channel.send(embed=embed, components=components, content=content)
+            message = await channel.send(
+                embed=embed, components=components, content=content
+            )
 
-    if isinstance(message.channel, (disnake.Thread, disnake.TextChannel)) and not message.pinned and not is_forum and target.guild.me.guild_permissions.manage_messages:
+    if (
+        isinstance(message.channel, (disnake.Thread, disnake.TextChannel))
+        and not message.pinned
+        and not is_forum
+        and target.guild.me.guild_permissions.manage_messages
+    ):
         await message.pin(reason="Player controller")
 
     return message
@@ -503,7 +600,7 @@ async def send_idle_embed(
 def string_to_file(txt, filename="result.txt"):
     if isinstance(txt, dict):
         txt = json.dumps(txt, indent=4, ensure_ascii=False)
-    txt = BytesIO(bytes(str(txt), 'utf-8'))
+    txt = BytesIO(bytes(str(txt), "utf-8"))
     return disnake.File(fp=txt, filename=filename or "result.txt")
 
 
@@ -511,21 +608,40 @@ async def fav_list(inter, query: str):
 
     data = await inter.bot.get_global_data(inter.author.id, db_name=DBModel.users)
 
-    lst = sorted([f"> itg: {integrationname}" for integrationname in data["integration_links"]
-               if not query or query.lower() in integrationname.lower()])
+    lst = sorted(
+        [
+            f"> itg: {integrationname}"
+            for integrationname in data["integration_links"]
+            if not query or query.lower() in integrationname.lower()
+        ]
+    )
 
     if len(lst) > 20:
         return lst
 
-    lst.extend(sorted([f"> fav: {favname}" for favname in data["fav_links"] if not query or query.lower() in favname.lower()]))
+    lst.extend(
+        sorted(
+            [
+                f"> fav: {favname}"
+                for favname in data["fav_links"]
+                if not query or query.lower() in favname.lower()
+            ]
+        )
+    )
 
     return lst[:20]
 
 
 async def pin_list(inter, query: str, *, prefix=""):
-    return sorted([f"{prefix}{pinname}" for pinname in
-                   (await inter.bot.get_data(inter.guild.id, db_name=DBModel.guilds))["player_controller"]["fav_links"]
-                   if not query or query.lower() in pinname.lower()][:20])
+    return sorted(
+        [
+            f"{prefix}{pinname}"
+            for pinname in (
+                await inter.bot.get_data(inter.guild.id, db_name=DBModel.guilds)
+            )["player_controller"]["fav_links"]
+            if not query or query.lower() in pinname.lower()
+        ][:20]
+    )
 
 
 def paginator(txt: str):
@@ -533,7 +649,10 @@ def paginator(txt: str):
     pages.max_size = 1910
     for line in txt.splitlines():
         if len(line) >= pages.max_size - 3:
-            l = [(line[i:i + pages.max_size - 3]) for i in range(0, len(line), pages.max_size - 3)]
+            l = [
+                (line[i : i + pages.max_size - 3])
+                for i in range(0, len(line), pages.max_size - 3)
+            ]
             for l2 in l:
                 pages.add_line(l2)
         else:
@@ -544,11 +663,19 @@ def paginator(txt: str):
 
 yt_url_regex = re.compile(r"^(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+")
 sc_url_regex = re.compile(r"^(https?://)?(www\.)?(soundcloud\.com)/.+")
-dz_url_regex = re.compile(r"(https?://)?(www\.)?deezer\.com/(?P<countrycode>[a-zA-Z]{2}/)?(?P<type>track|album|playlist|artist|profile)/(?P<identifier>[0-9]+)")
+dz_url_regex = re.compile(
+    r"(https?://)?(www\.)?deezer\.com/(?P<countrycode>[a-zA-Z]{2}/)?(?P<type>track|album|playlist|artist|profile)/(?P<identifier>[0-9]+)"
+)
 sp_url_regex = re.compile(r"^(https?://)?(www\.)?(open\.spotify\.com|spotify\.com)/.+")
-tw_url_regex = re.compile(r"^(https?://)?(www\.)?(twitch\.tv)/([A-Za-z0-9_]{4,25})(/.+)?")
-am_url_regex = re.compile(r"(https?://)?(www\.)?music\.apple\.com/((?P<countrycode>[a-zA-Z]{2})/)?(?P<type>album|playlist|artist|song)(/[a-zA-Z\w\d\-]+)?/(?P<identifier>[a-zA-Z\d\-.]+)(\?i=(?P<identifier2>\d+))?")
-js_url_regex = re.compile(r"(https?://)(www\.)?jiosaavn\.com/(song|album|featured|artist)/([a-zA-Z0-9-_]+)")
+tw_url_regex = re.compile(
+    r"^(https?://)?(www\.)?(twitch\.tv)/([A-Za-z0-9_]{4,25})(/.+)?"
+)
+am_url_regex = re.compile(
+    r"(https?://)?(www\.)?music\.apple\.com/((?P<countrycode>[a-zA-Z]{2})/)?(?P<type>album|playlist|artist|song)(/[a-zA-Z\w\d\-]+)?/(?P<identifier>[a-zA-Z\d\-.]+)(\?i=(?P<identifier2>\d+))?"
+)
+js_url_regex = re.compile(
+    r"(https?://)(www\.)?jiosaavn\.com/(song|album|featured|artist)/([a-zA-Z0-9-_]+)"
+)
 
 music_source_emoji_data = {
     "youtube": "<:youtube:647253940882374656>",
@@ -559,11 +686,13 @@ music_source_emoji_data = {
     "twitch": "<:Twitch:803656463695478804>",
     "jiosaavn": "<:jiosaavn:1235276169473949747>",
     "tidal": "<:tidal:1235352567048048691>",
-    "youtubemusic": "<:Youtubemusicicon:1245606364470841354>"
+    "youtubemusic": "<:Youtubemusicicon:1245606364470841354>",
 }
+
 
 def music_source_emoji(name: str):
     return music_source_emoji_data.get(name, "<:play:734221719774035968>")
+
 
 def get_source_emoji_cfg(bot: BotCore, url: str):
 
@@ -591,6 +720,7 @@ def get_source_emoji_cfg(bot: BotCore, url: str):
     except:
         return None
 
+
 def music_source_emoji_url(url: str):
 
     if yt_url_regex.match(url):
@@ -616,9 +746,15 @@ def music_source_emoji_url(url: str):
 
     return "<:play:734221719774035968>", "Plat. Desconhecida"
 
+
 def music_source_emoji_id(id_: str):
 
-    id_ = id_.replace("> itg: ", "").replace("> fav: ", "").replace("> svq: ", "").split()[0]
+    id_ = (
+        id_.replace("> itg: ", "")
+        .replace("> fav: ", "")
+        .replace("> svq: ", "")
+        .split()[0]
+    )
 
     if id_ == "【YT】:":
         return music_source_emoji_data["youtube"]
@@ -634,7 +770,13 @@ def music_source_emoji_id(id_: str):
 
     return "<:play:734221719774035968>"
 
-async def select_bot_pool(inter: Union[CustomContext, disnake.MessageInteraction, disnake.AppCmdInter], first=False, return_new=False, edit_original=False):
+
+async def select_bot_pool(
+    inter: Union[CustomContext, disnake.MessageInteraction, disnake.AppCmdInter],
+    first=False,
+    return_new=False,
+    edit_original=False,
+):
 
     if isinstance(inter, CustomContext):
         if len(inter.bot.pool.get_guild_bots(inter.guild_id)) < 2:
@@ -657,18 +799,33 @@ async def select_bot_pool(inter: Union[CustomContext, disnake.MessageInteraction
         if allow_private:
             return inter, inter.bot
 
-        if (bcount:=len([b for b in inter.bot.pool.get_guild_bots(inter.guild_id) if b.appinfo and b.appinfo.bot_public])):
+        if bcount := len(
+            [
+                b
+                for b in inter.bot.pool.get_guild_bots(inter.guild_id)
+                if b.appinfo and b.appinfo.bot_public
+            ]
+        ):
             raise GenericError(
                 f"**Será necessário adicionar no servidor pelo menos um bot compatível clicando no botão abaixo:**",
-                components=[disnake.ui.Button(custom_id="bot_invite", label=f"Adicionar bot{'s'[:bcount^1]}")]
+                components=[
+                    disnake.ui.Button(
+                        custom_id="bot_invite", label=f"Adicionar bot{'s'[:bcount^1]}"
+                    )
+                ],
             )
         else:
-            raise GenericError("**Não há bots compatíveis com meus comandos no servidor...**")
+            raise GenericError(
+                "**Não há bots compatíveis com meus comandos no servidor...**"
+            )
 
     if len(bots) == 1 or first:
         return inter, list(bots.values())[0]
     else:
-        opts = [disnake.SelectOption(label=f"{b.user}", value=f"{b.user.id}", emoji="🎶") for b in bots.values()]
+        opts = [
+            disnake.SelectOption(label=f"{b.user}", value=f"{b.user.id}", emoji="🎶")
+            for b in bots.values()
+        ]
 
         opts.append(disnake.SelectOption(label="Cancelar", value="cancel", emoji="❌"))
 
@@ -680,25 +837,25 @@ async def select_bot_pool(inter: Union[CustomContext, disnake.MessageInteraction
         embed = disnake.Embed(
             color=inter.bot.get_color(),
             description="**Selecione um bot abaixo:**\n"
-                        f'Nota: você tem apenas <t:{int((disnake.utils.utcnow() + datetime.timedelta(seconds=45)).timestamp())}:R> para escolher!'
+            f"Nota: você tem apenas <t:{int((disnake.utils.utcnow() + datetime.timedelta(seconds=45)).timestamp())}:R> para escolher!",
         )
 
-        components = [
-            disnake.ui.Select(
-                custom_id=f"select_bot{add_id}",
-                options=opts
-            )
-        ]
+        components = [disnake.ui.Select(custom_id=f"select_bot{add_id}", options=opts)]
 
         if edit_original:
             msg = await inter.response.edit_message(embed=embed, components=components)
         else:
-            msg = await inter.send(inter.author.mention, embed=embed, ephemeral=True, components=components)
+            msg = await inter.send(
+                inter.author.mention, embed=embed, ephemeral=True, components=components
+            )
 
         def check_bot_selection(i: Union[CustomContext, disnake.MessageInteraction]):
 
             try:
-                return i.data.custom_id == f"select_bot_{inter.id}" and i.author == inter.author
+                return (
+                    i.data.custom_id == f"select_bot_{inter.id}"
+                    and i.author == inter.author
+                )
             except AttributeError:
                 return i.author == inter.author and i.message.id == msg.id
 
@@ -708,7 +865,9 @@ async def select_bot_pool(inter: Union[CustomContext, disnake.MessageInteraction
             )
         except asyncio.TimeoutError:
             try:
-                await msg.edit(conent="Tempo de seleção esgotado!", embed=None, view=None)
+                await msg.edit(
+                    conent="Tempo de seleção esgotado!", embed=None, view=None
+                )
             except:
                 pass
             return None, None
@@ -723,10 +882,9 @@ async def select_bot_pool(inter: Union[CustomContext, disnake.MessageInteraction
         if new_inter.data.values[0] == "cancel":
             await func(
                 embed=disnake.Embed(
-                    description="**Seleção cancelada!**",
-                    color=inter.bot.get_color()
+                    description="**Seleção cancelada!**", color=inter.bot.get_color()
                 ),
-                components=None
+                components=None,
             )
             return None, None
 
@@ -739,10 +897,18 @@ async def select_bot_pool(inter: Union[CustomContext, disnake.MessageInteraction
         try:
             return inter, bots[int(new_inter.data.values[0])]
         except KeyError:
-            raise GenericError("**O bot selecionado foi removido do servidor antes de sua seleção...**")
+            raise GenericError(
+                "**O bot selecionado foi removido do servidor antes de sua seleção...**"
+            )
 
-def queue_track_index(inter: disnake.AppCmdInter, bot: BotCore, query: str, match_count: int = 1,
-                      case_sensitive: bool = False):
+
+def queue_track_index(
+    inter: disnake.AppCmdInter,
+    bot: BotCore,
+    query: str,
+    match_count: int = 1,
+    case_sensitive: bool = False,
+):
 
     player: LavalinkPlayer = bot.music.players[inter.guild_id]
 
@@ -762,7 +928,12 @@ def queue_track_index(inter: disnake.AppCmdInter, bot: BotCore, query: str, matc
         if unique_id is not None:
 
             if unique_id == track.unique_id:
-                return [(counter, track,)]
+                return [
+                    (
+                        counter,
+                        track,
+                    )
+                ]
 
             if match_count < 2:
                 continue
@@ -777,7 +948,12 @@ def queue_track_index(inter: disnake.AppCmdInter, bot: BotCore, query: str, matc
                 continue
 
             if check:
-                tracklist.append((counter, track,))
+                tracklist.append(
+                    (
+                        counter,
+                        track,
+                    )
+                )
                 count -= 1
                 if not count:
                     break
@@ -796,14 +972,22 @@ def queue_track_index(inter: disnake.AppCmdInter, bot: BotCore, query: str, matc
 
             if q_found == len(query_split):
 
-                tracklist.append((counter, track,))
+                tracklist.append(
+                    (
+                        counter,
+                        track,
+                    )
+                )
                 count -= 1
                 if not count:
                     break
 
     return tracklist
 
-def update_inter(old: Union[disnake.Interaction, CustomContext], new: disnake.Interaction):
+
+def update_inter(
+    old: Union[disnake.Interaction, CustomContext], new: disnake.Interaction
+):
 
     if isinstance(old, CustomContext):
         old.inter = new

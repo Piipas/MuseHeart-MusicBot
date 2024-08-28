@@ -35,7 +35,7 @@ class MiniPlayer:
         embed = disnake.Embed(
             color=embed_color,
             description=f"-# [{fix_characters(player.current.single_title, 48)}]({player.current.uri or player.current.search_uri})\n"
-                        f"-# **Uploader:** `{fix_characters(player.current.author, 17)}`\n"
+            f"-# **Uploader:** `{fix_characters(player.current.author, 17)}`\n",
         )
 
         if player.current.thumb:
@@ -50,8 +50,8 @@ class MiniPlayer:
                 embed.description += "-# **Adicionado via:** `[Recomendação]`\n"
 
         embed.set_author(
-            name="Tocando Agora:",
-            icon_url=music_source_image(player.current.info["sourceName"])
+            name="Now Playing:",
+            icon_url=music_source_image(player.current.info["sourceName"]),
         )
 
         if player.command_log:
@@ -65,14 +65,27 @@ class MiniPlayer:
         data["embeds"].append(embed)
 
         data["components"] = [
-            disnake.ui.Button(emoji="<:playpause:1000648043529519144>", custom_id=PlayerControls.pause_resume, style=get_button_style(player.paused)),
-            disnake.ui.Button(emoji="<:backward:938437126532517928>", custom_id=PlayerControls.back),
-            disnake.ui.Button(emoji="<:stop:923282526322184212>", custom_id=PlayerControls.stop, style=disnake.ButtonStyle.red),
-            disnake.ui.Button(emoji="<:skip:955164528595857488>", custom_id=PlayerControls.skip),
+            disnake.ui.Button(
+                emoji="<:playpause:1000648043529519144>",
+                custom_id=PlayerControls.pause_resume,
+                style=get_button_style(player.paused),
+            ),
+            disnake.ui.Button(
+                emoji="<:backward:938437126532517928>", custom_id=PlayerControls.back
+            ),
+            disnake.ui.Button(
+                emoji="<:stop:923282526322184212>",
+                custom_id=PlayerControls.stop,
+                style=disnake.ButtonStyle.red,
+            ),
+            disnake.ui.Button(
+                emoji="<:skip:955164528595857488>", custom_id=PlayerControls.skip
+            ),
             disnake.ui.Button(emoji="🤍", custom_id=PlayerControls.add_favorite),
         ]
 
         return data
+
 
 def load():
     return MiniPlayer()

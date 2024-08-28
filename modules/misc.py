@@ -55,7 +55,9 @@ class Misc(commands.Cog):
         self.bot = bot
         self.task = self.bot.loop.create_task(self.presences())
         self.extra_user_bots = []
-        self.extra_user_bots_ids = [int(i) for i in bot.config['ADDITIONAL_BOT_IDS'].split() if i.isdigit()]
+        self.extra_user_bots_ids = [
+            int(i) for i in bot.config["ADDITIONAL_BOT_IDS"].split() if i.isdigit()
+        ]
 
     def placeholders(self, text: str):
 
@@ -67,7 +69,16 @@ class Misc(commands.Cog):
         except AttributeError:
             pass
 
-        if [i for i in ("{players_count}", "{players_user_count}","{players_count_allbotchannels}", "{players_count_allbotservers}") if i in text]:
+        if [
+            i
+            for i in (
+                "{players_count}",
+                "{players_user_count}",
+                "{players_count_allbotchannels}",
+                "{players_count_allbotservers}",
+            )
+            if i in text
+        ]:
 
             channels = set()
             guilds = set()
@@ -101,7 +112,9 @@ class Misc(commands.Cog):
                 if not channels:
                     return
 
-                text = text.replace("{players_count_allbotchannels}", str(len(channels)))
+                text = text.replace(
+                    "{players_count_allbotchannels}", str(len(channels))
+                )
 
             if "{players_count_allbotservers}" in text:
 
@@ -117,12 +130,21 @@ class Misc(commands.Cog):
 
                 text = text.replace("{players_user_count}", str(len(users)))
 
-        return text \
-            .replace("{users}", f'{len([m for m in self.bot.users if not m.bot]):,}'.replace(",", ".")) \
-            .replace("{playing}", f'{len(self.bot.music.players):,}'.replace(",", ".")) \
-            .replace("{guilds}", f'{len(self.bot.guilds):,}'.replace(",", ".")) \
-            .replace("{uptime}", time_format((disnake.utils.utcnow() - self.bot.uptime).total_seconds() * 1000,
-                                             use_names=True))
+        return (
+            text.replace(
+                "{users}",
+                f"{len([m for m in self.bot.users if not m.bot]):,}".replace(",", "."),
+            )
+            .replace("{playing}", f"{len(self.bot.music.players):,}".replace(",", "."))
+            .replace("{guilds}", f"{len(self.bot.guilds):,}".replace(",", "."))
+            .replace(
+                "{uptime}",
+                time_format(
+                    (disnake.utils.utcnow() - self.bot.uptime).total_seconds() * 1000,
+                    use_names=True,
+                ),
+            )
+        )
 
     async def presences(self):
 
@@ -132,7 +154,7 @@ class Misc(commands.Cog):
 
             for i in self.bot.config["LISTENING_PRESENCES"].split("||"):
                 if i:
-                    activities.append({"name":i, "type": "listening"})
+                    activities.append({"name": i, "type": "listening"})
 
             for i in self.bot.config["WATCHING_PRESENCES"].split("||"):
                 if i:
@@ -150,7 +172,9 @@ class Misc(commands.Cog):
                 if i:
                     try:
                         name, url = i.split("||")
-                        activities.append({"name": name, "url": url.strip(" "), "type": "streaming"})
+                        activities.append(
+                            {"name": name, "url": url.strip(" "), "type": "streaming"}
+                        )
                     except Exception:
                         traceback.print_exc()
 
@@ -202,7 +226,7 @@ class Misc(commands.Cog):
                     activity = disnake.Activity(
                         type=disnake.ActivityType.streaming,
                         name=activity_name,
-                        url=activity_data["url"]
+                        url=activity_data["url"],
                     )
 
                 elif activity_data["type"] == "playing":
@@ -221,7 +245,6 @@ class Misc(commands.Cog):
 
         except Exception:
             traceback.print_exc()
-
 
     @commands.Cog.listener("on_guild_join")
     async def guild_add(self, guild: disnake.Guild):
@@ -242,11 +265,21 @@ class Misc(commands.Cog):
             else:
                 bots_outside_guild.append(bot)
 
-        components = [disnake.ui.Button(custom_id="bot_invite", label="Precisa de mais bots de música? Clique aqui.")] if [b for b in self.bot.pool.bots if b.appinfo and b.appinfo.bot_public] else []
+        components = (
+            [
+                disnake.ui.Button(
+                    custom_id="bot_invite", label="Need more music bots? Click here."
+                )
+            ]
+            if [b for b in self.bot.pool.bots if b.appinfo and b.appinfo.bot_public]
+            else []
+        )
 
-        if cmd:=self.bot.get_command("setup"):
-            cmd_text = f"Se desejar, use o comando **/{cmd.name}** para criar um canal dedicado pra pedir " \
-                        "músicas sem comandos e deixar o music player fixo em um canal dedicado.\n\n"
+        if cmd := self.bot.get_command("setup"):
+            cmd_text = (
+                f"If desired, use the command **/{cmd.name}** To create a dedicated channel to ask "
+                "Songs without commands and leave the fixed music player on a dedicated channel.\n\n"
+            )
         else:
             cmd_text = ""
 
@@ -256,8 +289,10 @@ class Misc(commands.Cog):
             support_server = ""
 
         if self.bot.default_prefix and not self.bot.config["INTERACTION_COMMAND_ONLY"]:
-            guild_data = await self.bot.get_global_data(guild.id, db_name=DBModel.guilds)
-            prefix = disnake.utils.escape_markdown(guild_data['prefix'], as_needed=True)
+            guild_data = await self.bot.get_global_data(
+                guild.id, db_name=DBModel.guilds
+            )
+            prefix = disnake.utils.escape_markdown(guild_data["prefix"], as_needed=True)
         else:
             prefix = ""
 
@@ -268,7 +303,11 @@ class Misc(commands.Cog):
         send_video = ""
 
         try:
-            channel = guild.system_channel if guild.system_channel.permissions_for(guild.me).send_messages else None
+            channel = (
+                guild.system_channel
+                if guild.system_channel.permissions_for(guild.me).send_messages
+                else None
+            )
         except AttributeError:
             channel = None
 
@@ -276,7 +315,9 @@ class Misc(commands.Cog):
 
             if guild.me.guild_permissions.view_audit_log:
 
-                async for entry in guild.audit_logs(action=disnake.AuditLogAction.integration_create, limit=50):
+                async for entry in guild.audit_logs(
+                    action=disnake.AuditLogAction.integration_create, limit=50
+                ):
 
                     if entry.target.application_id == self.bot.user.id:
 
@@ -285,15 +326,15 @@ class Misc(commands.Cog):
                         embeds.append(
                             disnake.Embed(
                                 color=color,
-                                description=f"Olá! Agradeço muito por ter me adicionado no servidor: **{guild.name}** :)"
+                                description=f"Olá! Agradeço muito por ter me adicionado no servidor: **{guild.name}** :)",
                             ).set_image(url=image)
                         )
 
                         embeds.append(
                             disnake.Embed(
                                 color=color,
-                                description=f"Para ver todos os meus comandos use barra (**/**) no servidor " \
-                                             f"**{guild.name}**"
+                                description=f"Para ver todos os meus comandos use barra (**/**) no servidor "
+                                f"**{guild.name}**",
                             ).set_image(url=image)
                         )
 
@@ -306,47 +347,60 @@ class Misc(commands.Cog):
                         embeds.append(
                             disnake.Embed(
                                 color=color,
-                                description=f"Também tenho comandos de texto por prefixo. {prefix_msg} (minha menção "
-                                            f"também funciona como prefixo). Pra ver todos os meus comandos de texto "
-                                            f"use **{prefix}help** em um canal do servidor **{guild.name}**. "
-                                            f"Caso queira alterar meu prefixo use o comando **{prefix}setprefix** "
-                                            f"(você pode ter um prefixo pessoal usando o comando "
-                                            f"**{prefix}setmyprefix**)."
+                                description=f"I also have text commands by prefix. {prefix_msg} (My mention "
+                                f"also works as a prefix). To see all my text commands "
+                                f"use **{prefix}help** on a server channel **{guild.name}**. "
+                                f"If you want to change my prefix use the command **{prefix}setprefix** "
+                                f"(You can have a personal prefix using the command "
+                                f"**{prefix}setmyprefix**).",
                             ).set_image(url=image)
                         )
 
                         if bots_in_guild:
 
-                            msg = f"Notei que há outros bots no servidor **{guild.name}** no qual sou compatível com " \
-                                   f"o sistema de multi-voice: {', '.join(b.user.mention for b in bots_in_guild)}\n\n" \
-                                   f"Ao usar usar os comandos de música (ex: play) sem um dos bots conectado no canal, " \
-                                    "será usado um dos bots que estiver livre no servidor."
+                            msg = (
+                                f"Notei que há outros bots no servidor **{guild.name}** no qual sou compatível com "
+                                f"o sistema de multi-voice: {', '.join(b.user.mention for b in bots_in_guild)}\n\n"
+                                f"Ao usar usar os comandos de música (ex: play) sem um dos bots conectado no canal, "
+                                "será usado um dos bots que estiver livre no servidor."
+                            )
 
-                            if not self.bot.pool.config.get("MULTIVOICE_VIDEO_DEMO_URL"):
+                            if not self.bot.pool.config.get(
+                                "MULTIVOICE_VIDEO_DEMO_URL"
+                            ):
                                 embeds.append(
                                     disnake.Embed(
-                                        color=color,
-                                        description=msg
+                                        color=color, description=msg
                                     ).set_image(url=image)
                                 )
 
                             else:
                                 send_video = msg
 
-                        elif bots_outside_guild and self.bot.config.get('MULTIVOICE_VIDEO_DEMO_URL'):
-                            send_video = "**Caso tenha demanda no seu servidor você também pode adicionar mais bots de músicas extras.\n" \
-                                         "Todos os bots compartilham o mesmo prefixo e comando de barra o que descarta a necessidade " \
-                                         f"de ficar decorando prefixos e comandos de barra de cada bot individualmente.\n\n" \
-                                         f"Confira o [vídeo]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando o uso de multi-bot na prática.**"
+                        elif bots_outside_guild and self.bot.config.get(
+                            "MULTIVOICE_VIDEO_DEMO_URL"
+                        ):
+                            send_video = (
+                                "**Caso tenha demanda no seu servidor você também pode adicionar mais bots de músicas extras.\n"
+                                "Todos os bots compartilham o mesmo prefixo e comando de barra o que descarta a necessidade "
+                                f"de ficar decorando prefixos e comandos de barra de cada bot individualmente.\n\n"
+                                f"Confira o [vídeo]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando o uso de multi-bot na prática.**"
+                            )
 
                         if support_server:
-                            embeds.append(disnake.Embed(color=color, description=support_server).set_image(url=image))
+                            embeds.append(
+                                disnake.Embed(
+                                    color=color, description=support_server
+                                ).set_image(url=image)
+                            )
 
                         try:
                             await entry.user.send(embeds=embeds, components=components)
                             if send_video:
                                 await asyncio.sleep(1)
-                                await entry.user.send(f"{send_video}\n\nConfira o [**vídeo**]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando essa funcionalidade.")
+                                await entry.user.send(
+                                    f"{send_video}\n\nConfira o [**vídeo**]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando essa funcionalidade."
+                                )
                             return
                         except disnake.Forbidden:
                             pass
@@ -367,62 +421,83 @@ class Misc(commands.Cog):
 
         embeds = [
             disnake.Embed(
-                color=color, description="Olá! Para ver todos os meus comandos use barra (**/**)\n"
-                                         "`Nota: Caso os comandos estejam aparecendo no seu servidor,"
-                                         "talvez o mesmo tenha atingido o limite de bots com comandos de barra "
-                                         "registrados (caso tenha mais de 50 integrações/apps no seu servidor).`"
+                color=color,
+                description="Hello! To see all my commands use bar (**/**)\n"
+                "`Note: If the commands are appearing on your server,"
+                "perhaps it has reached the bot boundary with bar commands "
+                "registered (if you have more than 50 integrations/apps on your server).`",
             ).set_image(url=image)
         ]
 
         if prefix:
-            prefix_msg = f"Meu prefixo no servidor é: **{prefix}**"
+            prefix_msg = f"My prefix on the server is: **{prefix}**"
         else:
             prefix = self.bot.default_prefix
-            prefix_msg = f"Meu prefixo padrão é **{prefix}**"
+            prefix_msg = f"My default prefix is **{prefix}**"
 
         embeds.append(
             disnake.Embed(
                 color=color,
-                description=f"Também tenho comandos de texto por prefixo. {prefix_msg} (minha menção "
-                            f"também funciona como prefixo). Pra ver todos os meus comandos de texto use "
-                            f"**{prefix}help**. Caso queira alterar meu prefixo use o comando **{prefix}setprefix** "
-                            f"(você pode ter um prefixo pessoal usando o comando **{prefix}setmyprefix**)."
+                description=f"I also have text commands by prefix. {prefix_msg} (My mention "
+                f"also works as a prefix). To see all my text commands use "
+                f"**{prefix}help**. If you want to change my prefix use the command **{prefix}setprefix** "
+                f"(you can have a personal prefix using the command **{prefix}setmyprefix**).",
             ).set_image(url=image)
         )
 
         if bots_in_guild:
 
-            msg = f"Notei que há outros bots no servidor **{guild.name}** no qual sou compatível com " \
-                  f"o sistema de multi-voice: {', '.join(b.user.mention for b in bots_in_guild)}\n\n" \
-                  f"Ao usar usar os comandos de música (ex: play) sem um dos bots conectado no canal, será usado um " \
-                   f"dos bots que estiver livre no servidor."
+            msg = (
+                f"Notei que há outros bots no servidor **{guild.name}** no qual sou compatível com "
+                f"o sistema de multi-voice: {', '.join(b.user.mention for b in bots_in_guild)}\n\n"
+                f"Ao usar usar os comandos de música (ex: play) sem um dos bots conectado no canal, será usado um "
+                f"dos bots que estiver livre no servidor."
+            )
 
-            if not self.bot.config.get('MULTIVOICE_VIDEO_DEMO_URL'):
+            if not self.bot.config.get("MULTIVOICE_VIDEO_DEMO_URL"):
                 embeds.append(
-                    disnake.Embed(
-                        color=color,
-                        description=msg
-                    ).set_image(url=image)
+                    disnake.Embed(color=color, description=msg).set_image(url=image)
                 )
             else:
                 send_video = msg
 
-        elif bots_outside_guild and self.bot.config.get('MULTIVOICE_VIDEO_DEMO_URL'):
-            send_video = "**Caso tenha demanda no seu servidor você também pode adicionar mais bots de músicas extras.\n" \
-                          "Todos os bots compartilham o mesmo prefixo e comando de barra o que descarta a necessidade " \
-                          f"de ficar decorando prefixos e comandos de barra de cada bot individualmente.\n\n" \
-                        f"Confira o [vídeo]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando o uso de multi-bot na prática.**"
+        elif bots_outside_guild and self.bot.config.get("MULTIVOICE_VIDEO_DEMO_URL"):
+            send_video = (
+                "**Caso tenha demanda no seu servidor você também pode adicionar mais bots de músicas extras.\n"
+                "Todos os bots compartilham o mesmo prefixo e comando de barra o que descarta a necessidade "
+                f"de ficar decorando prefixos e comandos de barra de cada bot individualmente.\n\n"
+                f"Confira o [vídeo]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando o uso de multi-bot na prática.**"
+            )
 
-        embeds.append(disnake.Embed(color=color, description=cmd_text).set_image(url=image))
+        embeds.append(
+            disnake.Embed(color=color, description=cmd_text).set_image(url=image)
+        )
 
         if support_server:
-            embeds.append(disnake.Embed(color=color, description=support_server).set_image(url=image))
+            embeds.append(
+                disnake.Embed(color=color, description=support_server).set_image(
+                    url=image
+                )
+            )
 
-        kwargs = {"delete_after": 60} if channel == guild.rules_channel else {"delete_after": 300}
+        kwargs = (
+            {"delete_after": 60}
+            if channel == guild.rules_channel
+            else {"delete_after": 300}
+        )
 
-        timestamp = int((disnake.utils.utcnow() + datetime.timedelta(seconds=kwargs["delete_after"])).timestamp())
+        timestamp = int(
+            (
+                disnake.utils.utcnow()
+                + datetime.timedelta(seconds=kwargs["delete_after"])
+            ).timestamp()
+        )
 
-        embeds[-1].description += f"\nEssa mensagem será deletada automaticamente <t:{timestamp}:R>"
+        embeds[
+            -1
+        ].description += (
+            f"\nThis message will be deleted automatically <t:{timestamp}:R>"
+        )
 
         try:
             await channel.send(embeds=embeds, components=components, **kwargs)
@@ -430,30 +505,36 @@ class Misc(commands.Cog):
                 if "delete_after" in kwargs:
                     kwargs["delete_after"] = 600
                 await asyncio.sleep(1)
-                await channel.send(f"{send_video}\n\nConfira o [**vídeo**]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando essa funcionalidade.", **kwargs)
+                await channel.send(
+                    f"{send_video}\n\nConfira o [**vídeo**]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando essa funcionalidade.",
+                    **kwargs,
+                )
         except:
-            print(f"Falha ao enviar mensagem de novo servidor no canal: {channel}\n"
-                  f"ID do canal: {channel.id}\n"
-                  f"Tipo de canal: {type(channel)}\n"
-                  f"{traceback.format_exc()}")
-
+            print(
+                f"Falha ao enviar mensagem de novo servidor no canal: {channel}\n"
+                f"ID do canal: {channel.id}\n"
+                f"Tipo de canal: {type(channel)}\n"
+                f"{traceback.format_exc()}"
+            )
 
     about_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.member)
 
-    @commands.command(name="about", aliases=["sobre", "info", "botinfo"], description="Exibir informações sobre mim.",
-                      cooldown=about_cd)
+    @commands.command(
+        name="about",
+        aliases=["sobre", "info", "botinfo"],
+        description="Display information about me.",
+        cooldown=about_cd,
+    )
     async def about_legacy(self, ctx: CustomContext):
         await self.about.callback(self=self, interaction=ctx)
 
-
     @commands.slash_command(
-        description=f"{desc_prefix}Exibir informações sobre mim.", cooldown=about_cd, dm_permission=False,
-        extras={"allow_private": True}
+        description=f"{desc_prefix}Display information about me.",
+        cooldown=about_cd,
+        dm_permission=False,
+        extras={"allow_private": True},
     )
-    async def about(
-            self,
-            interaction: disnake.AppCmdInter
-    ):
+    async def about(self, interaction: disnake.AppCmdInter):
 
         inter, bot = await select_bot_pool(interaction, first=True)
 
@@ -463,17 +544,23 @@ class Misc(commands.Cog):
         await inter.response.defer(ephemeral=True)
 
         try:
-            lavalink_ram = psutil.Process(self.bot.pool.lavalink_instance.pid).memory_info().rss
+            lavalink_ram = (
+                psutil.Process(self.bot.pool.lavalink_instance.pid).memory_info().rss
+            )
         except:
             lavalink_ram = 0
 
         python_ram = psutil.Process(getpid()).memory_info().rss
 
-        ram_msg = f"> 🖥️ **⠂Uso de RAM (Python):** `{humanize.naturalsize(python_ram)}`\n"
+        ram_msg = (
+            f"> 🖥️ **⠂Use of RAM (Python):** `{humanize.naturalsize(python_ram)}`\n"
+        )
 
         if lavalink_ram:
-            ram_msg += f"> 🌋 **⠂Uso de RAM (Lavalink):** `{humanize.naturalsize(lavalink_ram)}`\n" \
-                        f"> 🖥️ **⠂Uso de RAM (Total):** `{humanize.naturalsize(python_ram + lavalink_ram)}`\n"
+            ram_msg += (
+                f"> 🌋 **⠂Use of RAM (Lavalink):** `{humanize.naturalsize(lavalink_ram)}`\n"
+                f"> 🖥️ **⠂Use of RAM (Total):** `{humanize.naturalsize(python_ram + lavalink_ram)}`\n"
+            )
 
         guild = bot.get_guild(inter.guild_id) or inter.guild
 
@@ -540,7 +627,11 @@ class Misc(commands.Cog):
                 identifier = f"{n.identifier} (v{n.version})"
 
                 if not identifier in node_data:
-                    node_data[identifier] = {"total": 0, "available": 0, "website": n.website}
+                    node_data[identifier] = {
+                        "total": 0,
+                        "available": 0,
+                        "website": n.website,
+                    }
 
                 node_data[identifier]["total"] += 1
 
@@ -554,7 +645,9 @@ class Misc(commands.Cog):
 
                 elif p.paused:
                     try:
-                        if any(m for m in p.guild.me.voice.channel.members if not m.bot):
+                        if any(
+                            m for m in p.guild.me.voice.channel.members if not m.bot
+                        ):
                             paused_players_other_bots += 1
                             continue
                     except AttributeError:
@@ -580,11 +673,14 @@ class Misc(commands.Cog):
         for identifier, data in node_data.items():
 
             if data["available"] > 0:
-                if data['website']:
+                if data["website"]:
                     nodes_available.add(
-                        f"> [`✅⠂{identifier}`]({data['website']}) `[{data['available']}/{data['total']}]`")
+                        f"> [`✅⠂{identifier}`]({data['website']}) `[{data['available']}/{data['total']}]`"
+                    )
                 else:
-                    nodes_available.add(f"> `✅⠂{identifier} [{data['available']}/{data['total']}]`")
+                    nodes_available.add(
+                        f"> `✅⠂{identifier} [{data['available']}/{data['total']}]`"
+                    )
             else:
                 nodes_unavailable.add(f"> `❌⠂{identifier}`")
 
@@ -596,12 +692,16 @@ class Misc(commands.Cog):
 
         if len(allbots) < 2:
 
-            embed.description += "### Estatíticas (bot atual):\n" \
-                                 f"> 🏙️ **⠂Servidor{'es'[:(svcount:=len(bot.guilds))^1]}:** `{svcount:,}`\n" \
-                                 f"> 👥 **⠂Usuário{'s'[:user_count^1]}:** `{user_count:,}`\n"
+            embed.description += (
+                "### Statistics (current bot):\n"
+                f"> 🏙️ **⠂Server{'s'[:(svcount:=len(bot.guilds))^1]}:** `{svcount:,}`\n"
+                f"> 👥 **⠂User{'s'[:user_count^1]}:** `{user_count:,}`\n"
+            )
 
             if bot_count:
-                embed.description += f"> 🤖 **⠂Bot{'s'[:bot_count^1]}:** `{bot_count:,}`\n"
+                embed.description += (
+                    f"> 🤖 **⠂bot{'s'[:bot_count^1]}:** `{bot_count:,}`\n"
+                )
 
         else:
 
@@ -613,52 +713,64 @@ class Misc(commands.Cog):
             if private_bot_count:
                 embed.description += f"> 🤖 **⠂Bot{(s:='s'[:private_bot_count^1])} privado{s}:** `{private_bot_count:,}`\n"
 
-            embed.description += f"> 🏙️ **⠂Servidor{'es'[:guilds_size^1]}:** `{guilds_size:,}`\n"
+            embed.description += (
+                f"> 🏙️ **⠂Servidor{'es'[:guilds_size^1]}:** `{guilds_size:,}`\n"
+            )
 
             if users_amount := len(users):
-                embed.description += f"> 👥 **⠂Usuário{'s'[:users_amount^1]}:** `{users_amount:,}`\n"
+                embed.description += (
+                    f"> 👥 **⠂Usuário{'s'[:users_amount^1]}:** `{users_amount:,}`\n"
+                )
 
             if bots_amount := len(bots):
-                embed.description += f"> 🤖 **⠂Bot{'s'[:bots_amount^1]}:** `{bots_amount:,}`\n"
+                embed.description += (
+                    f"> 🤖 **⠂Bot{'s'[:bots_amount^1]}:** `{bots_amount:,}`\n"
+                )
 
-        embed.description += "### Outras informações:\n"
+        embed.description += "### Other information:\n"
 
         if active_players_other_bots:
-            embed.description += f"> ▶️ **⠂Player{(s:='s'[:active_players_other_bots^1])} ativo{s}:** `{active_players_other_bots:,}`\n"
+            embed.description += f"> ▶️ **⠂Active {(s:='s'[:active_players_other_bots^1])} player{s}:** `{active_players_other_bots:,}`\n"
 
         if paused_players_other_bots:
-            embed.description += f"> ⏸️ **⠂Player{'s'[:paused_players_other_bots^1]} em pausa:** `{paused_players_other_bots:,}`\n"
+            embed.description += f"> ⏸️ **⠂Paused {'s'[:paused_players_other_bots^1]} player{s}** `{paused_players_other_bots:,}`\n"
 
         if inactive_players_other_bots:
-            embed.description += f"> 💤 **⠂Player{(s:='s'[:inactive_players_other_bots^1])} inativo{s}:** `{inactive_players_other_bots:,}`\n"
+            embed.description += f"> 💤 **Inactive {(s:='s'[:inactive_players_other_bots^1])} player{s}:** `{inactive_players_other_bots:,}`\n"
 
         if listeners:
-            embed.description += f"> 🎧 **⠂Ouvinte{'s'[:(lcount:=len(listeners))^1]} atua{'is'[:lcount^1] or 'l'}:** `{lcount:,}`\n"
+            embed.description += f"> 🎧 **⠂Current listener{'s'[:(lcount:=len(listeners))^1]}:** `{lcount:,}`\n"
 
         if bot.pool.commit:
-            embed.description += f"> 📥 **⠂Commit atual:** [`{bot.pool.commit[:7]}`]({bot.pool.remote_git_url}/commit/{bot.pool.commit})\n"
+            embed.description += f"> 📥 **⠂Current commit:** [`{bot.pool.commit[:7]}`]({bot.pool.remote_git_url}/commit/{bot.pool.commit})\n"
 
-        embed.description += f"> 🐍 **⠂Versão do Python:** `{platform.python_version()}`\n" \
-                             f"> 📦 **⠂Versão do Disnake:** `{disnake.__version__}`\n" \
-                             f"> 📶 **⠂Latencia:** `{round(bot.latency * 1000)}ms`\n" \
-                             f"{ram_msg}" \
-                             f"> ⏰ **⠂Uptime:** <t:{int(bot.uptime.timestamp())}:R>\n"
+        embed.description += (
+            f"> 🐍 **⠂Python version:** `{platform.python_version()}`\n"
+            f"> 📦 **Disnake version:** `{disnake.__version__}`\n"
+            f"> 📶 **⠂Latency:** `{round(bot.latency * 1000)}ms`\n"
+            f"{ram_msg}"
+            f"> ⏰ **⠂Uptime:** <t:{int(bot.uptime.timestamp())}:R>\n"
+        )
 
         if not bot.config["INTERACTION_COMMAND_ONLY"]:
 
-            guild_data = await bot.get_global_data(inter.guild_id, db_name=DBModel.guilds)
+            guild_data = await bot.get_global_data(
+                inter.guild_id, db_name=DBModel.guilds
+            )
 
             if guild_data["prefix"]:
-                embed.description += f"> ⌨️ **⠂Prefixo do servidor:** `{disnake.utils.escape_markdown(guild_data['prefix'], as_needed=True)}`\n"
+                embed.description += f"> ⌨️ **⠂Server prefix:** `{disnake.utils.escape_markdown(guild_data['prefix'], as_needed=True)}`\n"
             else:
-                embed.description += f"> ⌨️ **⠂Prefixo padrão:** `{disnake.utils.escape_markdown(bot.default_prefix, as_needed=True)}`\n"
+                embed.description += f"> ⌨️ **⠂Standard Prefix:** `{disnake.utils.escape_markdown(bot.default_prefix, as_needed=True)}`\n"
 
-            user_data = await bot.get_global_data(inter.author.id, db_name=DBModel.users)
+            user_data = await bot.get_global_data(
+                inter.author.id, db_name=DBModel.users
+            )
 
             if user_data["custom_prefix"]:
-                embed.description += f"> ⌨️ **⠂Seu prefixo de usuário:** `{disnake.utils.escape_markdown(user_data['custom_prefix'], as_needed=True)}`\n"
+                embed.description += f"> ⌨️ **⠂Your user prefix:** `{disnake.utils.escape_markdown(user_data['custom_prefix'], as_needed=True)}`\n"
 
-        links = "[`[Source]`](https://github.com/zRitsu/MuseHeart-MusicBot)"
+        links = "[`[Source]`](https://github.com/piipas/MuseHeart-MusicBot)"
 
         if bot.config["SUPPORT_SERVER"]:
             links = f"[`[Suporte]`]({bot.config['SUPPORT_SERVER']})  **|** {links}"
@@ -672,19 +784,27 @@ class Misc(commands.Cog):
 
         if node_txt_final:
 
-            embed.description += f"### Servidores de música (Lavalink Servers):\n{node_txt_final}"
+            embed.description += (
+                f"### Music Servers (Lavalink Servers):\n{node_txt_final}"
+            )
 
         try:
             avatar = owner.avatar.with_static_format("png").url
         except AttributeError:
             avatar = owner.default_avatar.with_static_format("png").url
 
-        embed.set_footer(
-            icon_url=avatar,
-            text=f"Dono(a): {owner} [{owner.id}]"
-        )
+        embed.set_footer(icon_url=avatar, text=f"Gift: {owner} [{owner.id}]")
 
-        components = [disnake.ui.Button(custom_id="bot_invite", label="Me adicione no seu servidor")] if [b for b in self.bot.pool.bots if b.appinfo and (b.appinfo.bot_public or await b.is_owner(inter.author))] else None
+        components = (
+            [disnake.ui.Button(custom_id="bot_invite", label="Add me to your server")]
+            if [
+                b
+                for b in self.bot.pool.bots
+                if b.appinfo
+                and (b.appinfo.bot_public or await b.is_owner(inter.author))
+            ]
+            else None
+        )
 
         try:
             await inter.edit_original_message(embed=embed, components=components)
@@ -693,7 +813,6 @@ class Misc(commands.Cog):
                 await inter.response.edit_message(embed=embed, components=components)
             except:
                 await inter.send(embed=embed, ephemeral=True, components=components)
-
 
     @commands.Cog.listener("on_button_click")
     async def invite_button(self, inter: disnake.MessageInteraction, is_command=False):
@@ -710,7 +829,7 @@ class Misc(commands.Cog):
             guild = inter.guild
         else:
             for bot in self.bot.pool.bots:
-                if (guild:=bot.get_guild(inter.guild_id)):
+                if guild := bot.get_guild(inter.guild_id):
                     break
 
         for bot in sorted(self.bot.pool.bots, key=lambda b: len(b.guilds)):
@@ -730,7 +849,11 @@ class Misc(commands.Cog):
             else:
                 invite += f" `[{len(bot.guilds)}]`"
 
-            if guild and inter.author.guild_permissions.manage_guild and bot.user in guild.members:
+            if (
+                guild
+                and inter.author.guild_permissions.manage_guild
+                and bot.user in guild.members
+            ):
                 bots_in_guild.append(invite)
             else:
                 bots_invites.append(invite)
@@ -738,13 +861,13 @@ class Misc(commands.Cog):
         txt = ""
 
         if bots_invites:
-            txt += "## Bots de música disponíveis:\n"
+            txt += "## Available music bots:\n"
             for i in disnake.utils.as_chunks(bots_invites, 2):
                 txt += " | ".join(i) + "\n"
             txt += "\n"
 
         if bots_in_guild:
-            txt += "## Bots de música que já estão no servidor atual:\n"
+            txt += "## Music bots that are already on the current server:\n"
             for i in disnake.utils.as_chunks(bots_in_guild, 2):
                 txt += " | ".join(i) + "\n"
 
@@ -754,31 +877,41 @@ class Misc(commands.Cog):
                     colour=self.bot.get_color(
                         inter.guild.me if inter.guild else guild.me if guild else None
                     ),
-                    description="## Não há bots públicos disponível...",
-                ), ephemeral=True
+                    description="## There are no public bots available...",
+                ),
+                ephemeral=True,
             )
             return
 
-        color = self.bot.get_color(inter.guild.me if inter.guild else guild.me if guild else None)
+        color = self.bot.get_color(
+            inter.guild.me if inter.guild else guild.me if guild else None
+        )
 
         embeds = [
             disnake.Embed(
-                colour=self.bot.get_color(inter.guild.me if inter.guild else guild.me if guild else None),
-                description=p, color=color
-            ) for p in paginator(txt)
+                colour=self.bot.get_color(
+                    inter.guild.me if inter.guild else guild.me if guild else None
+                ),
+                description=p,
+                color=color,
+            )
+            for p in paginator(txt)
         ]
 
         await inter.send(embeds=embeds, ephemeral=True)
 
-
-    @commands.command(name="invite", aliases=["convidar"], description="Exibir meu link de convite para você me adicionar no seu servidor.")
+    @commands.command(
+        name="invite",
+        aliases=["convidar"],
+        description="Display my invitation link for you to add me to your server.",
+    )
     async def invite_legacy(self, ctx):
         await self.invite.callback(self=self, inter=ctx)
 
-
     @commands.slash_command(
-        description=f"{desc_prefix}Exibir meu link de convite para você me adicionar no seu servidor.",
-        dm_permission=False, extras={"allow_private": True}
+        description=f"{desc_prefix}Display my invitation link for you to add me to your server.",
+        dm_permission=False,
+        extras={"allow_private": True},
     )
     async def invite(self, inter: disnake.AppCmdInter):
 
@@ -796,40 +929,58 @@ class Misc(commands.Cog):
         bot = self.bot
 
         for b in self.bot.pool.get_guild_bots(inter.guild_id):
-            if (guild:=b.get_guild(inter.guild_id)):
+            if guild := b.get_guild(inter.guild_id):
                 bot = b
                 break
 
         if not guild:
             user = await bot.fetch_user(inter.author.id)
 
-            user_avatar_url = inter.author.display_avatar.replace(static_format="png", size=512).url
+            user_avatar_url = inter.author.display_avatar.replace(
+                static_format="png", size=512
+            ).url
 
-            if user_banner_url:=user.banner:
-                user_banner_url = inter.author.banner.replace(static_format="png", size=4096).url
+            if user_banner_url := user.banner:
+                user_banner_url = inter.author.banner.replace(
+                    static_format="png", size=4096
+                ).url
 
             guild_avatar_url = None
             guild_banner_url = None
 
         else:
-            async with self.bot.session.get(f"https://discord.com/api/v10/guilds/{inter.guild_id}/members/{user.id}",
-                                            headers={"Authorization": f"Bot {bot.http.token}"}) as r:
+            async with self.bot.session.get(
+                f"https://discord.com/api/v10/guilds/{inter.guild_id}/members/{user.id}",
+                headers={"Authorization": f"Bot {bot.http.token}"},
+            ) as r:
                 data = await r.json()
 
-            user_avatar_url = f"https://cdn.discordapp.com/avatars/{user.id}/{data['user']['avatar']}." + (
-                "gif" if data['user']['avatar'].startswith('a_') else "png") + "?size=512"
+            user_avatar_url = (
+                f"https://cdn.discordapp.com/avatars/{user.id}/{data['user']['avatar']}."
+                + ("gif" if data["user"]["avatar"].startswith("a_") else "png")
+                + "?size=512"
+            )
 
-            if user_banner_url := data['user'].get('banner'):
-                user_banner_url = f"https://cdn.discordapp.com/banners/{user.id}/{user_banner_url}." + (
-                    "gif" if user_banner_url.startswith('a_') else "png") + "?size=4096"
+            if user_banner_url := data["user"].get("banner"):
+                user_banner_url = (
+                    f"https://cdn.discordapp.com/banners/{user.id}/{user_banner_url}."
+                    + ("gif" if user_banner_url.startswith("a_") else "png")
+                    + "?size=4096"
+                )
 
             if guild_avatar_url := data.get("avatar"):
-                guild_avatar_url = f"https://cdn.discordapp.com/guilds/{inter.guild_id}/users/{user.id}/avatars/{guild_avatar_url}." + (
-                    "gif" if guild_avatar_url.startswith('a_') else "png") + "?size=512"
+                guild_avatar_url = (
+                    f"https://cdn.discordapp.com/guilds/{inter.guild_id}/users/{user.id}/avatars/{guild_avatar_url}."
+                    + ("gif" if guild_avatar_url.startswith("a_") else "png")
+                    + "?size=512"
+                )
 
             if guild_banner_url := data.get("banner"):
-                guild_banner_url = f"https://cdn.discordapp.com/guilds/{inter.guild_id}/users/{user.id}/banners/{guild_banner_url}." + (
-                    "gif" if guild_banner_url.startswith('a_') else "png") + "?size=4096"
+                guild_banner_url = (
+                    f"https://cdn.discordapp.com/guilds/{inter.guild_id}/users/{user.id}/banners/{guild_banner_url}."
+                    + ("gif" if guild_banner_url.startswith("a_") else "png")
+                    + "?size=4096"
+                )
 
         embeds = []
 
@@ -841,38 +992,47 @@ class Misc(commands.Cog):
             embeds.append(
                 disnake.Embed(
                     description=f"{user.mention} **[avatar (server)]({guild_avatar_url})**",
-                    color=color).set_image(url=guild_avatar_url)
+                    color=color,
+                ).set_image(url=guild_avatar_url)
             )
 
         if guild_banner_url:
             embeds.append(
                 disnake.Embed(
                     description=f"{user.mention} **[banner (server)]({guild_banner_url})**",
-                    color=color).set_image(url=guild_banner_url)
+                    color=color,
+                ).set_image(url=guild_banner_url)
             )
 
         embeds.append(
             disnake.Embed(
                 description=f"{user.mention} **[avatar (user)]({user_avatar_url})**",
-                color=color).set_image(url=user_avatar_url)
+                color=color,
+            ).set_image(url=user_avatar_url)
         )
 
         if user_banner_url:
             embeds.append(
                 disnake.Embed(
                     description=f"{user.mention} **[banner (user)]({user_banner_url})**",
-                    color=color).set_image(url=user_banner_url)
+                    color=color,
+                ).set_image(url=user_banner_url)
             )
 
         if inter.user.id != user.id:
-            embeds[-1].set_footer(text=f"Solicitado por: {inter.author}", icon_url=requester)
+            embeds[-1].set_footer(
+                text=f"Solicitado por: {inter.author}", icon_url=requester
+            )
 
         await inter.send(embeds=embeds, ephemeral=True)
 
     @commands.is_owner()
     @commands.max_concurrency(1, commands.BucketType.default)
-    @commands.command(hidden=True, description="Comando temporário para corrigir favoritos com espaços em branco "
-                                               "que ocasionam erros em algumas situações.")
+    @commands.command(
+        hidden=True,
+        description="Temporary command to correct favorites with blank spaces "
+        "that cause errors in some situations.",
+    )
     async def fixfavs(self, ctx: CustomContext):
 
         if not os.path.isdir("./local_database/fixfavs_backup"):
@@ -882,9 +1042,14 @@ class Misc(commands.Cog):
 
             for bot in self.bot.pool.get_all_bots():
 
-                db_data = await bot.pool.database.query_data(collection=str(bot.user.id), db_name=DBModel.guilds, limit=300)
-    
-                async with aiofiles.open(f"./local_database/fixfavs_backup/guild_favs_{bot.user.id}.json", "w") as f:
+                db_data = await bot.pool.database.query_data(
+                    collection=str(bot.user.id), db_name=DBModel.guilds, limit=300
+                )
+
+                async with aiofiles.open(
+                    f"./local_database/fixfavs_backup/guild_favs_{bot.user.id}.json",
+                    "w",
+                ) as f:
                     await f.write(json.dumps(db_data, indent=4))
 
                 for data in db_data:
@@ -892,18 +1057,26 @@ class Misc(commands.Cog):
                         remove_blank_spaces(data["player_controller"]["fav_links"])
                     except KeyError:
                         continue
-                    await bot.update_data(id_=data["_id"], data=data, db_name=DBModel.guilds)
+                    await bot.update_data(
+                        id_=data["_id"], data=data, db_name=DBModel.guilds
+                    )
 
-            db_data = await self.bot.pool.database.query_data(collection="global", db_name=DBModel.users, limit=500)
+            db_data = await self.bot.pool.database.query_data(
+                collection="global", db_name=DBModel.users, limit=500
+            )
 
-            async with aiofiles.open("./local_database/fixfavs_backup/user_favs.json", "w") as f:
+            async with aiofiles.open(
+                "./local_database/fixfavs_backup/user_favs.json", "w"
+            ) as f:
                 await f.write(json.dumps(db_data, indent=4))
 
             for data in db_data:
                 remove_blank_spaces(data["fav_links"])
-                await self.bot.update_global_data(id_=data["_id"], data=data, db_name=DBModel.users)
+                await self.bot.update_global_data(
+                    id_=data["_id"], data=data, db_name=DBModel.users
+                )
 
-            await ctx.send("os favoritos foram corrigidos com sucesso!")
+            await ctx.send("Favorites were successfully corrected!")
 
     async def cog_check(self, ctx):
         return await check_requester_channel(ctx)
@@ -927,12 +1100,14 @@ class GuildLog(commands.Cog):
             if URL_REG.match(bot.config["BOT_ADD_REMOVE_LOG"]):
                 self.hook_url = bot.config["BOT_ADD_REMOVE_LOG"]
             else:
-                print("URL do webhook inválido (para envio de logs ao adicionar/remover bot).")
+                print(
+                    "Invalid Webhook URL (for sending logs when adding/removing bot)."
+                )
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: disnake.Guild):
 
-        print(f"Removido do servidor: {guild.name} - [{guild.id}]")
+        print(f"Removed from the server: {guild.name} - [{guild.id}]")
 
         try:
             await self.bot.music.players[guild.id].destroy()
@@ -945,7 +1120,9 @@ class GuildLog(commands.Cog):
             return
 
         try:
-            await self.send_hook(guild, title="Me removeram do servidor", color=disnake.Color.red())
+            await self.send_hook(
+                guild, title="Removed me from the server", color=disnake.Color.red()
+            )
         except:
             traceback.print_exc()
 
@@ -954,11 +1131,15 @@ class GuildLog(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild: disnake.Guild):
 
-        print(f"{self.bot.user.name} - Adicionado(a) no servidor: {guild.name} - [{guild.id}]")
+        print(
+            f"{self.bot.user.name} - Added to the server: {guild.name} - [{guild.id}]"
+        )
 
         try:
             guild_data = await self.bot.get_data(guild.id, db_name=DBModel.guilds)
-            guild_data["player_controller"] = deepcopy(db_models[DBModel.guilds]["player_controller"])
+            guild_data["player_controller"] = deepcopy(
+                db_models[DBModel.guilds]["player_controller"]
+            )
             await self.bot.update_data(guild.id, guild_data, db_name=DBModel.guilds)
         except:
             traceback.print_exc()
@@ -967,7 +1148,11 @@ class GuildLog(commands.Cog):
             return
 
         try:
-            await self.send_hook(guild, title="Me adicionaram em um novo servidor", color=disnake.Color.green())
+            await self.send_hook(
+                guild,
+                title="Added me to a new server",
+                color=disnake.Color.green(),
+            )
         except:
             traceback.print_exc()
 
@@ -979,14 +1164,14 @@ class GuildLog(commands.Cog):
 
         embed = disnake.Embed(
             description=f"__**{title}:**__\n"
-                        f"```{guild.name}```\n"
-                        f"**ID:** `{guild.id}`\n"
-                        f"**Dono:** `{guild.owner} [{guild.owner.id}]`\n"
-                        f"**Criado em:** <t:{created_at}:f> - <t:{created_at}:R>\n"
-                        f"**Nível de verificação:** `{guild.verification_level or 'nenhuma'}`\n"
-                        f"**Membros:** `{len([m for m in guild.members if not m.bot])}`\n"
-                        f"**Bots:** `{len([m for m in guild.members if m.bot])}`\n",
-            color=color
+            f"```{guild.name}```\n"
+            f"**ID:** `{guild.id}`\n"
+            f"**Gift:** `{guild.owner} [{guild.owner.id}]`\n"
+            f"**Created in:** <t:{created_at}:f> - <t:{created_at}:R>\n"
+            f"**Verification level:** `{guild.verification_level or 'nenhuma'}`\n"
+            f"**Members:** `{len([m for m in guild.members if not m.bot])}`\n"
+            f"**Bots:** `{len([m for m in guild.members if m.bot])}`\n",
+            color=color,
         )
 
         try:
@@ -997,10 +1182,13 @@ class GuildLog(commands.Cog):
         async with ClientSession() as session:
             webhook = disnake.Webhook.from_url(self.hook_url, session=session)
             await webhook.send(
-                content=", ".join(f"<@{owner_id}>" for owner_id in self.bot.owner_ids) or self.bot.owner.mention,
+                content=", ".join(f"<@{owner_id}>" for owner_id in self.bot.owner_ids)
+                or self.bot.owner.mention,
                 username=self.bot.user.name,
-                avatar_url=self.bot.user.display_avatar.replace(size=256, static_format="png").url,
-                embed=embed
+                avatar_url=self.bot.user.display_avatar.replace(
+                    size=256, static_format="png"
+                ).url,
+                embed=embed,
             )
 
 
