@@ -520,6 +520,76 @@ class Misc(commands.Cog):
     about_cd = commands.CooldownMapping.from_cooldown(1, 5, commands.BucketType.member)
 
     @commands.command(
+        name='stats',
+        description='Display Stats of joined bots',
+        cooldown=about_cd
+    )
+
+    async def stats_legacy(self, ctx: CustomContext):
+        await self.stats.callback(self=self, interaction=ctx)
+
+    @commands.slash_command(
+        description=f"{desc_prefix}Display Stats of joined bots",
+        cooldown=about_cd,
+        dm_permission=False,
+        extras={"allow_private": True},
+    )
+
+    async def stats(self, interaction: disnake.AppCmdInter):
+
+        inter, bot = await select_bot_pool(interaction, first=True)
+
+        if not bot:
+            return
+        
+        await inter.response.defer(ephemeral=True)
+
+        all_bots = self.bot.pool.get_all_bots()
+        all_bots_ids = []
+
+        for bot in all_bots:
+            all_bots_ids.append(bot.user.id)
+
+        embed = disnake.Embed(description="", color=bot.get_color())
+
+        busy_bots = []
+        available_bots = all_bots_ids
+        
+        for channel in inter.guild.voice_channels:
+            for bot in channel.members:
+                if bot.bot and bot.id in all_bots_ids:
+                    busy_bots.append(bot.id)
+                    all_bots_ids.remove(bot.id)
+        
+        busy_bots_mentions = []
+        available_bots_mentions = []
+        for busy_bot in busy_bots:
+            busy_bots_mentions.append(f"<@{busy_bot}>\n")
+
+        for available_bot in available_bots:
+            available_bots_mentions.append(f"<@{available_bot}>\n")
+
+        embed.add_field(
+            name=f":green_circle: Available Bots ({len(available_bots_mentions)}):",
+            value=f"{''.join(available_bots_mentions)}",
+            inline=True
+        )
+
+        embed.add_field(name="\u200b", value="\u200b", inline=True)
+
+        embed.add_field(
+            name=f":red_circle: Busy Bots ({len(busy_bots_mentions)}):",
+            value=f"{''.join(busy_bots_mentions)}",
+            inline=True
+        )
+
+        # embed.description += ('### Available Bots Statistics:\n' f":green_circle:  Available Bots:\n" 
+        #                     f"{''.join(available_bots_mentions)}" f"\n:red_circle: Busy Bots:\n" 
+        #                     f"{''.join(busy_bots_mentions)}")
+
+        await inter.send(embed=embed, ephemeral=True)
+
+    @commands.command(
         name="about",
         aliases=["sobre", "info", "botinfo"],
         description="Display information about me.",
@@ -705,21 +775,21 @@ class Misc(commands.Cog):
 
         else:
 
-            embed.description += "### Estatísticas (totais em todos os bots):\n"
+            embed.description += "### Statistics (total in all bots):\n"
 
             if public_bot_count:
-                embed.description += f"> 🤖 **⠂Bot{(s:='s'[:public_bot_count^1])} público{s}:** `{public_bot_count:,}`\n"
+                embed.description += f"> 🤖 **⠂Public bot{(s:='s'[:public_bot_count^1])}:** `{public_bot_count:,}`\n"
 
             if private_bot_count:
-                embed.description += f"> 🤖 **⠂Bot{(s:='s'[:private_bot_count^1])} privado{s}:** `{private_bot_count:,}`\n"
+                embed.description += f"> 🤖 **⠂Private bot{(s:='s'[:private_bot_count^1])} :** `{private_bot_count:,}`\n"
 
             embed.description += (
-                f"> 🏙️ **⠂Servidor{'es'[:guilds_size^1]}:** `{guilds_size:,}`\n"
+                f"> 🏙️ **⠂Server{'s'[:guilds_size^1]}:** `{guilds_size:,}`\n"
             )
 
             if users_amount := len(users):
                 embed.description += (
-                    f"> 👥 **⠂Usuário{'s'[:users_amount^1]}:** `{users_amount:,}`\n"
+                    f"> 👥 **⠂User{'s'[:users_amount^1]}:** `{users_amount:,}`\n"
                 )
 
             if bots_amount := len(bots):
@@ -736,7 +806,7 @@ class Misc(commands.Cog):
             embed.description += f"> ⏸️ **⠂Paused {'s'[:paused_players_other_bots^1]} player{s}** `{paused_players_other_bots:,}`\n"
 
         if inactive_players_other_bots:
-            embed.description += f"> 💤 **Inactive {(s:='s'[:inactive_players_other_bots^1])} player{s}:** `{inactive_players_other_bots:,}`\n"
+            embed.description += f"> 💤 **⠂Inactive {(s:='s'[:inactive_players_other_bots^1])} player{s}:** `{inactive_players_other_bots:,}`\n"
 
         if listeners:
             embed.description += f"> 🎧 **⠂Current listener{'s'[:(lcount:=len(listeners))^1]}:** `{lcount:,}`\n"
@@ -746,7 +816,7 @@ class Misc(commands.Cog):
 
         embed.description += (
             f"> 🐍 **⠂Python version:** `{platform.python_version()}`\n"
-            f"> 📦 **Disnake version:** `{disnake.__version__}`\n"
+            f"> 📦 **⠂Disnake version:** `{disnake.__version__}`\n"
             f"> 📶 **⠂Latency:** `{round(bot.latency * 1000)}ms`\n"
             f"{ram_msg}"
             f"> ⏰ **⠂Uptime:** <t:{int(bot.uptime.timestamp())}:R>\n"
@@ -775,7 +845,7 @@ class Misc(commands.Cog):
         if bot.config["SUPPORT_SERVER"]:
             links = f"[`[Suporte]`]({bot.config['SUPPORT_SERVER']})  **|** {links}"
 
-        embed.description += f"> 🌐 **⠂**{links}\n"
+        # embed.description += f"> 🌐 **⠂**{links}\n"
 
         try:
             owner = bot.appinfo.team.owner
