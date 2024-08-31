@@ -180,7 +180,7 @@ def check_cmd(cmd: commands.command):
         return True
 
 
-class HelpCog(commands.Cog, name="Ajuda"):
+class HelpCog(commands.Cog, name="Help"):
 
     def __init__(self, bot: BotCore):
         self.bot = bot
@@ -198,7 +198,7 @@ class HelpCog(commands.Cog, name="Ajuda"):
         if cmd.description:
             help_cmd = cmd.description
         else:
-            help_cmd = "Sem descrição..."
+            help_cmd = "Described..."
 
         prefix = (
             ctx.prefix
@@ -287,13 +287,13 @@ class HelpCog(commands.Cog, name="Ajuda"):
         if (max_pages := len(cmds)) > 1:
             embed.set_footer(
                 icon_url=owner.display_avatar.replace(static_format="png"),
-                text=f"Página: {index + 1} de {max_pages}",
+                text=f"Page: {index + 1} de {max_pages}",
             )
         return embed
 
     @commands.cooldown(2, 5, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
-    @commands.command(hidden=True, name="help", aliases=["ajuda"])
+    @commands.command(hidden=True, name="help", aliases=["howto"])
     async def _help(self, ctx, *cmd_name):
 
         if cmd_name:
@@ -329,7 +329,7 @@ class HelpCog(commands.Cog, name="Ajuda"):
             else:
                 if not cmd.cog.emoji:
                     cmd.cog.emoji = "⁉"
-                    cmd.cog.name = "Sem Categoria"
+                    cmd.cog.name = "Category"
                 if not cmd.cog.emoji in cmdlst:
                     cmdlst[cmd.cog.emoji] = (cmd.cog.name, [])
                 cmdlst[cmd.cog.emoji][1].append(cmd)
@@ -351,13 +351,13 @@ class HelpCog(commands.Cog, name="Ajuda"):
             )
             n = len(data["cmds"])
             lst.append(
-                f"\n\n**{data['emoji']} ⠂{category} ({n} comando{'s' if n > 1 else ''}):**\n`{cmds}`"
+                f"\n\n**{data['emoji']} ⠂{category} ({n} command{'s' if n > 1 else ''}):**\n`{cmds}`"
             )
 
         txt = (
             f"{''.join(lst)}\n\n"
             "For information from a command directly, use: \n"
-            f"`{ctx.prefix}{ctx.invoked_with} <comando/alias>`"
+            f"`{ctx.prefix}{ctx.invoked_with} <command/alias>`"
         )
 
         embed = disnake.Embed(
@@ -367,7 +367,7 @@ class HelpCog(commands.Cog, name="Ajuda"):
             color=self.bot.get_color(ctx.guild.me),
         )
         embed.set_author(
-            name=f"Menu de ajuda - Lista de comandos (prefix)",
+            name=f"Help Menu - List of Commands (Prefix)",
             icon_url=self.bot.user.display_avatar.replace(static_format="png").url,
         )
 
@@ -378,7 +378,7 @@ class HelpCog(commands.Cog, name="Ajuda"):
 
         embed.set_footer(
             icon_url=owner.display_avatar.replace(static_format="png").url,
-            text=f"Gift (a): {owner} [{owner.id}]",
+            text=f"Gift: {owner} [{owner.id}]",
         )
 
         view = ViewHelp(
@@ -427,7 +427,7 @@ class HelpCog(commands.Cog, name="Ajuda"):
         if not cmd or (not await check_perms(ctx, cmd)):
             b = "`" if len(cmd_name) > 1 else ""
             raise GenericError(
-                f"Comando [{b}{' '.join(cmd_name[:-1])}{b}{' ' if len(cmd_name) > 1 else ''}**{cmd_name[-1]}**] não encontrado!"
+                f"Command [{b}{' '.join(cmd_name[:-1])}{b}{' ' if len(cmd_name) > 1 else ''}**{cmd_name[-1]}**] unintegrated!"
             )
 
         if any(c for c in cmd.cog.get_commands() if check_cmd(c)):

@@ -244,10 +244,10 @@ class Music(commands.Cog):
             player.update = True
 
             if isinstance(inter, CustomContext):
-                await inter.send("**O status automático foi definido com sucesso!**")
+                await inter.send("**Automatic status has been successfully defined!**")
             else:
                 await inter.edit_original_message(
-                    "**O status automático foi definido com sucesso!**"
+                    "**Automatic status was successfully defined!**"
                 )
 
     @set_voice_status.autocomplete("modelo")
@@ -395,13 +395,13 @@ class Music(commands.Cog):
     @commands.slash_command(
         extras={"only_voiced": True},
         dm_permission=False,
-        description=f"{desc_prefix}Me conectar em um voice channel (ou me mover para um).",
+        description=f"{desc_prefix}I connect to a voice channel (or move me to one).",
     )
     async def connect(
         self,
         inter: disnake.AppCmdInter,
         channel: Union[disnake.VoiceChannel, disnake.StageChannel] = commands.Param(
-            name="canal", description="Canal para me conectar"
+            name="channel", description="Channel to connect"
         ),
     ):
         try:
@@ -459,8 +459,8 @@ class Music(commands.Cog):
         except KeyError:
             print(f"Player debug test 20: {bot.user} | {self.bot.user}")
             raise GenericError(
-                f"**O player do bot {bot.user.mention} foi finalizado antes de conectar no voice channel "
-                f"(ou o player não foi inicializado)...\nPor via das dúvidas tente novamente.**"
+                f"**The bot player {bot.user.mention} was finished before connecting to Voice Channel "
+                f"(or the player was not initialized)...\nsince the case, try again.**"
             )
 
         can_connect(
@@ -520,11 +520,11 @@ class Music(commands.Cog):
             if not await check_deafen(me):
                 await text_channel.send(
                     embed=disnake.Embed(
-                        title="Aviso:",
-                        description="Para manter sua privacidade e me ajudar a economizar "
-                        "recursos, recomendo disable meu áudio do canal clicando "
-                        "com botão direito sobre mim e em seguida marcar: disable "
-                        "áudio no servidor.",
+                        title="Notice:",
+                        description="To maintain your privacy and help me save money "
+                        "resources, I recommend disable my audio from the channel by clicking "
+                        "right click on me and then mark: disable "
+                        "audio on the server.",
                         color=self.bot.get_color(me),
                     ).set_image(
                         url="https://cdn.discordapp.com/attachments/554468640942981147/1012533546386210956/unknown.png"

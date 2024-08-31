@@ -25,6 +25,9 @@ from utils.music.checks import check_requester_channel
 from utils.music.converters import time_format, URL_REG
 from utils.others import select_bot_pool, CustomContext, paginator
 
+import modules.help_cog as helpcog
+import modules.music as music
+
 if TYPE_CHECKING:
     from utils.client import BotCore
 
@@ -284,7 +287,7 @@ class Misc(commands.Cog):
             cmd_text = ""
 
         if self.bot.config["SUPPORT_SERVER"]:
-            support_server = f"Caso tenha alguma dúvida ou queira acompanhar as últimas novidades, você pode entrar no meu [`servidor de suporte`]({self.bot.config['SUPPORT_SERVER']})"
+            support_server = f"If you have any questions or want to follow the latest news, you can enter my [`support server`]({self.bot.config['SUPPORT_SERVER']})"
         else:
             support_server = ""
 
@@ -326,23 +329,23 @@ class Misc(commands.Cog):
                         embeds.append(
                             disnake.Embed(
                                 color=color,
-                                description=f"Olá! Agradeço muito por ter me adicionado no servidor: **{guild.name}** :)",
+                                description=f"Hello! Thank you very much for adding me to the server: **{guild.name}** :)",
                             ).set_image(url=image)
                         )
 
                         embeds.append(
                             disnake.Embed(
                                 color=color,
-                                description=f"Para ver todos os meus comandos use barra (**/**) no servidor "
+                                description=f"To see all my commands use bar (**/**) on the server "
                                 f"**{guild.name}**",
                             ).set_image(url=image)
                         )
 
                         if prefix:
-                            prefix_msg = f"Meu prefixo no servidor **{guild.name}** é: **{prefix}**"
+                            prefix_msg = f"My prefix on the server **{guild.name}** é: **{prefix}**"
                         else:
                             prefix = self.bot.default_prefix
-                            prefix_msg = f"Meu prefixo padrão é **{prefix}**"
+                            prefix_msg = f"My default prefix is **{prefix}**"
 
                         embeds.append(
                             disnake.Embed(
@@ -359,10 +362,10 @@ class Misc(commands.Cog):
                         if bots_in_guild:
 
                             msg = (
-                                f"Notei que há outros bots no servidor **{guild.name}** no qual sou compatível com "
-                                f"o sistema de multi-voice: {', '.join(b.user.mention for b in bots_in_guild)}\n\n"
-                                f"Ao usar usar os comandos de música (ex: play) sem um dos bots conectado no canal, "
-                                "será usado um dos bots que estiver livre no servidor."
+                                f"I noticed that there are other bots on the server **{guild.name}** in which I am compatible with "
+                                f"a multi-voice system: {', '.join(b.user.mention for b in bots_in_guild)}\n\n"
+                                f"When using music commands (eg: play) without one of the channel -connected bots, "
+                                "one of the bots that is free on the server will be used."
                             )
 
                             if not self.bot.pool.config.get(
@@ -381,10 +384,10 @@ class Misc(commands.Cog):
                             "MULTIVOICE_VIDEO_DEMO_URL"
                         ):
                             send_video = (
-                                "**Caso tenha demanda no seu servidor você também pode adicionar mais bots de músicas extras.\n"
-                                "Todos os bots compartilham o mesmo prefixo e comando de barra o que descarta a necessidade "
-                                f"de ficar decorando prefixos e comandos de barra de cada bot individualmente.\n\n"
-                                f"Confira o [vídeo]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando o uso de multi-bot na prática.**"
+                                "**If you have demand on your server you can also add more extra music bots.\n"
+                                "All bots share the same prefix and bar command which rules the need "
+                                f"to decorate prefixes and bar commands of each bot individually.\n\n"
+                                f"Check out the [vídeo]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrating the use of multi-bot in practice.**"
                             )
 
                         if support_server:
@@ -399,7 +402,7 @@ class Misc(commands.Cog):
                             if send_video:
                                 await asyncio.sleep(1)
                                 await entry.user.send(
-                                    f"{send_video}\n\nConfira o [**vídeo**]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrando essa funcionalidade."
+                                    f"{send_video}\n\nCheck out the [**vídeo**]({self.bot.config['MULTIVOICE_VIDEO_DEMO_URL']}) demonstrating this functionality."
                                 )
                             return
                         except disnake.Forbidden:
@@ -500,7 +503,7 @@ class Misc(commands.Cog):
         )
 
         try:
-            await channel.send(embeds=embeds, components=components, **kwargs)
+            await channel.send(embeds=embeds, **kwargs)
             if send_video:
                 if "delete_after" in kwargs:
                     kwargs["delete_after"] = 600
@@ -522,9 +525,8 @@ class Misc(commands.Cog):
     @commands.command(
         name='stats',
         description='Display Stats of joined bots',
-        cooldown=about_cd
+        cooldown=about_cd,
     )
-
     async def stats_legacy(self, ctx: CustomContext):
         await self.stats.callback(self=self, interaction=ctx)
 
@@ -534,7 +536,6 @@ class Misc(commands.Cog):
         dm_permission=False,
         extras={"allow_private": True},
     )
-
     async def stats(self, interaction: disnake.AppCmdInter):
 
         inter, bot = await select_bot_pool(interaction, first=True)
@@ -583,11 +584,65 @@ class Misc(commands.Cog):
             inline=True
         )
 
-        # embed.description += ('### Available Bots Statistics:\n' f":green_circle:  Available Bots:\n" 
-        #                     f"{''.join(available_bots_mentions)}" f"\n:red_circle: Busy Bots:\n" 
-        #                     f"{''.join(busy_bots_mentions)}")
-
         await inter.send(embed=embed, ephemeral=True)
+
+    @commands.command(
+        name="dashboard",
+        description="There is no description!!",
+        cooldown=about_cd,
+    )
+    async def dashboard_legacy(self, ctx: CustomContext):
+        await self.dashboard.callback(self=self, interaction=ctx)
+
+    @commands.slash_command(
+        description="There is no description!!",
+        cooldown=about_cd,
+        dm_permission=False,
+        # extras={"allow_private": True},
+    )
+
+    async def dashboard(self, interaction: disnake.AppCmdInter):
+
+        inter, bot = await select_bot_pool(interaction, first=True)
+
+        if not bot:
+            return
+        
+        await inter.response.defer(ephemeral=True)
+
+        embed = disnake.Embed(description="", color=bot.get_color())
+
+        embed.description += ('Dashboard')
+
+        components = ([
+            disnake.ui.Button(custom_id="connect", label="Join The Room"),
+            disnake.ui.Button(custom_id="help", label="Help"),
+            disnake.ui.Button(custom_id="statistics", label="Statistics")
+            ])
+
+        await inter.send(components=components)
+
+    @commands.Cog.listener("on_button_click")
+    async def dashboard_options(self, inter: disnake.MessageInteraction, is_command=False):
+
+        # if not is_command:
+        #     print(f'Not a command {inter.data}')
+        #     return
+        ctx = await self.bot.get_context(inter.message)
+        
+        if inter.data.custom_id == "connect":
+            print(inter.author.voice.channel.name)
+            await inter.bot.get_slash_command('connect').callback(self=music.Music, inter=inter, channel=inter)
+
+        elif inter.data.custom_id == "help":
+            await inter.bot.get_command('help')(context=ctx)
+            print('Hello Help Button')
+
+        elif inter.data.custom_id == "statistics":
+            await self.stats(inter)
+            print('Hello Stats Button')
+        else:
+            return
 
     @commands.command(
         name="about",
@@ -811,8 +866,8 @@ class Misc(commands.Cog):
         if listeners:
             embed.description += f"> 🎧 **⠂Current listener{'s'[:(lcount:=len(listeners))^1]}:** `{lcount:,}`\n"
 
-        if bot.pool.commit:
-            embed.description += f"> 📥 **⠂Current commit:** [`{bot.pool.commit[:7]}`]({bot.pool.remote_git_url}/commit/{bot.pool.commit})\n"
+        # if bot.pool.commit:
+        #     embed.description += f"> 📥 **⠂Current commit:** [`{bot.pool.commit[:7]}`]({bot.pool.remote_git_url}/commit/{bot.pool.commit})\n"
 
         embed.description += (
             f"> 🐍 **⠂Python version:** `{platform.python_version()}`\n"
@@ -970,24 +1025,24 @@ class Misc(commands.Cog):
 
         await inter.send(embeds=embeds, ephemeral=True)
 
-    @commands.command(
-        name="invite",
-        aliases=["convidar"],
-        description="Display my invitation link for you to add me to your server.",
-    )
-    async def invite_legacy(self, ctx):
-        await self.invite.callback(self=self, inter=ctx)
+    # @commands.command(
+    #     name="invite",
+    #     aliases=["convidar"],
+    #     description="Display my invitation link for you to add me to your server.",
+    # )
+    # async def invite_legacy(self, ctx):
+    #     await self.invite.callback(self=self, inter=ctx)
 
-    @commands.slash_command(
-        description=f"{desc_prefix}Display my invitation link for you to add me to your server.",
-        dm_permission=False,
-        extras={"allow_private": True},
-    )
-    async def invite(self, inter: disnake.AppCmdInter):
+    # @commands.slash_command(
+    #     description=f"{desc_prefix}Display my invitation link for you to add me to your server.",
+    #     dm_permission=False,
+    #     extras={"allow_private": True},
+    # )
+    # async def invite(self, inter: disnake.AppCmdInter):
 
-        await inter.response.defer(ephemeral=True)
+    #     await inter.response.defer(ephemeral=True)
 
-        await self.invite_button(inter, is_command=True)
+    #     await self.invite_button(inter, is_command=True)
 
     @commands.user_command(name="Avatar", dm_permission=False)
     async def avatar(self, inter: disnake.UserCommandInteraction):
